@@ -1,28 +1,21 @@
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 import { AppNav } from "@/components/app-nav";
 import { LogoutButton } from "@/components/logout-button";
 import { db } from "@/db";
 import { ROLY } from "@/lib/enums";
-import { smieVidietRoute } from "@/server/rbac";
 import { getCurrentUser } from "@/server/session";
 
 export const dynamic = "force-dynamic";
 
-// Shell chránenej časti appky: vyžaduje prihlásenie (getCurrentUser → /login) a
-// vynúti RBAC per routa (pathname z Proxy hlavičky x-pathname). Neprihlásených
-// zachytí už Proxy; toto je druhá vrstva + zdroj roly pre navigáciu.
+// Shell chránenej časti appky: vyžaduje prihlásenie (getCurrentUser → /login)
+// a je zdrojom roly pre navigáciu. RBAC per modul rieši per-modul layout
+// (src/app/(app)/<modul>/layout.tsx → vyzadajModul) — spoľahlivo pri mounte
+// segmentu, na rozdiel od tohto layoutu, ktorý sa pri soft-navigácii neopakuje.
 export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const user = await getCurrentUser(db);
-
-  const pathname = (await headers()).get("x-pathname") ?? "/";
-  if (!smieVidietRoute(user.role, pathname)) {
-    redirect("/");
-  }
 
   return (
     <div className="flex min-h-screen">

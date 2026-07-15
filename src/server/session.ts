@@ -4,6 +4,7 @@
 // NIE z JWT/user_metadata (user-editovateľné).
 import { and, eq, isNull } from "drizzle-orm";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 import type { DbClient } from "@/db";
 import * as schema from "@/db/schema";
 import type { UserRole } from "@/lib/enums";
@@ -33,7 +34,9 @@ export async function pouzivatelPodlaId(
  * Bez platnej session alebo bez zodpovedajúceho aktívneho záznamu v users →
  * redirect na /login (Proxy to drží aj na úrovni routovania).
  */
-export async function getCurrentUser(
+// cache() dedupuje v rámci jednej požiadavky — getCurrentUser volá (app) layout,
+// per-modul layout aj page, no getClaims + DB join zbehne raz.
+export const getCurrentUser = cache(async function getCurrentUser(
   db: DbClient,
 ): Promise<typeof schema.users.$inferSelect> {
   const supabase = await createSupabaseServerClient();
@@ -47,7 +50,7 @@ export async function getCurrentUser(
   // (Proxy vidí platný JWT → prihlásený → /login presmeruje na /).
   if (!user) redirect("/odhlasit");
   return user;
-}
+});
 
 /**
  * Prihlásený používateľ + overenie roly pre server actions (jeden krok).

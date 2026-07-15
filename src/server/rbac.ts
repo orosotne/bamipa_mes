@@ -21,7 +21,10 @@ export type Modul = (typeof MODULY)[number];
 const POVOLENIA: Record<Modul, UserRole[]> = {
   faktury: ["ekonom"],
   dodavatelia: ["ekonom"],
-  sklad: ["ekonom", "majster_valcovne"], // majster kvôli výdajom navážky
+  // SPEC §4: sklad je doména ekonóma. Majster valcovne robí výdaj navážky v
+  // /vyroba (materiály servíruje server query, nie prístup do /sklad) — nedáva
+  // mu prístup na nákupné ceny a cenovú históriu.
+  sklad: ["ekonom"],
   receptury: [], // technická konfigurácia + QC limity → len admin
   vyroba: ["majster_valcovne"],
   labak: ["laborant"],

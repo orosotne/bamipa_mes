@@ -51,16 +51,20 @@ export async function updateSession(
   const { pathname } = request.nextUrl;
   const jeLogin = pathname === "/login";
 
-  if (!prihlaseny && !jeLogin) {
+  // Redirect musí niesť práve obnovené session cookies zo `response` — inak sa
+  // pri prechode stratia (Supabase vzor: vracať tú istú response).
+  const presmeruj = (cesta: string): NextResponse => {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
-  }
-  if (prihlaseny && jeLogin) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/";
-    return NextResponse.redirect(url);
-  }
+    url.pathname = cesta;
+    const r = NextResponse.redirect(url);
+    for (const cookie of response.cookies.getAll()) {
+      r.cookies.set(cookie);
+    }
+    return r;
+  };
+
+  if (!prihlaseny && !jeLogin) return presmeruj("/login");
+  if (prihlaseny && jeLogin) return presmeruj("/");
 
   return response;
 }

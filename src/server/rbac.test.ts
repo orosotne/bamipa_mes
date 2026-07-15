@@ -18,8 +18,8 @@ describe("smieVidiet", () => {
     ],
     [
       "majster_valcovne",
-      ["vyroba", "sklad"],
-      ["faktury", "labak", "ciselniky", "pouzivatelia"],
+      ["vyroba"],
+      ["faktury", "sklad", "labak", "ciselniky", "pouzivatelia"],
     ],
     [
       "laborant",

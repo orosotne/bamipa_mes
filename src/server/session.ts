@@ -42,7 +42,10 @@ export async function getCurrentUser(
   if (!sub) redirect("/login");
 
   const user = await pouzivatelPodlaId(db, sub);
-  if (!user) redirect("/login");
+  // Platná session, ale žiadny aktívny účet (deaktivovaný/soft-deleted/osirelý)
+  // → /odhlasit invaliduje session; priamy redirect na /login by cyklil s Proxy
+  // (Proxy vidí platný JWT → prihlásený → /login presmeruje na /).
+  if (!user) redirect("/odhlasit");
   return user;
 }
 

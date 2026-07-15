@@ -1,10 +1,37 @@
 // Správa používateľov (SPEC §4) — DB vrstva. Auth účet vzniká v action cez
 // Supabase admin API; tu sa vedie záznam v našej users tabuľke (rola, aktivita)
 // + audit_log. Rola pre autorizáciu žije VÝHRADNE tu (nie v JWT).
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq, isNull, ne, sql } from "drizzle-orm";
 import type { DbClient } from "@/db";
 import * as schema from "@/db/schema";
 import type { UserRole } from "@/lib/enums";
+
+/**
+ * Invariant: systém musí mať vždy aspoň jedného aktívneho admina. Zabráni
+ * lockoutu (odobratie roly / deaktivácia posledného admina — či už sám sebe
+ * alebo cez iný účet). Volať PRED demotion/deaktiváciou admina.
+ */
+async function overNieJePoslednyAdmin(
+  db: DbClient,
+  targetId: string,
+): Promise<void> {
+  const [row] = await db
+    .select({ pocet: sql<number>`count(*)::int` })
+    .from(schema.users)
+    .where(
+      and(
+        eq(schema.users.role, "admin"),
+        eq(schema.users.isActive, true),
+        isNull(schema.users.deletedAt),
+        ne(schema.users.id, targetId),
+      ),
+    );
+  if ((row?.pocet ?? 0) === 0) {
+    throw new Error(
+      "Toto je posledný aktívny administrátor — nemožno mu odobrať rolu ani ho deaktivovať.",
+    );
+  }
+}
 
 export type PouzivatelRiadok = {
   id: string;
@@ -80,6 +107,11 @@ export async function zmenRolu(
       .where(eq(schema.users.id, vstup.id));
     if (!povodny) throw new Error("Používateľ neexistuje.");
 
+    // Odobratie admin roly poslednému aktívnemu adminovi = lockout.
+    if (povodny.role === "admin" && vstup.role !== "admin") {
+      await overNieJePoslednyAdmin(tx as DbClient, vstup.id);
+    }
+
     const [user] = await tx
       .update(schema.users)
       .set({ role: vstup.role })
@@ -108,6 +140,17 @@ export async function nastavAktivny(
   }
 
   return db.transaction(async (tx) => {
+    const [ciel] = await tx
+      .select({ role: schema.users.role })
+      .from(schema.users)
+      .where(eq(schema.users.id, vstup.id));
+    if (!ciel) throw new Error("Používateľ neexistuje.");
+
+    // Deaktivácia posledného aktívneho admina = lockout.
+    if (!vstup.isActive && ciel.role === "admin") {
+      await overNieJePoslednyAdmin(tx as DbClient, vstup.id);
+    }
+
     const [user] = await tx
       .update(schema.users)
       .set({ isActive: vstup.isActive })

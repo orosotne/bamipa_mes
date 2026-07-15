@@ -107,6 +107,58 @@ describe("nastavAktivny", () => {
   });
 });
 
+describe("lockout invariant — posledný aktívny admin", () => {
+  const ADMIN2 = "00000000-0000-0000-0000-0000000000d1";
+
+  async function pridajAdmina2() {
+    await db.insert(schema.users).values({
+      id: ADMIN2,
+      displayName: "Admin dva",
+      role: "admin",
+      createdBy: zaklad.adminId,
+    });
+  }
+
+  test("zmenRolu: demotion posledného admina (aj sám sebe) → chyba", async () => {
+    // seeded admin je jediný admin
+    await expect(
+      zmenRolu(db, { adminId: zaklad.adminId, id: zaklad.adminId, role: "ekonom" }),
+    ).rejects.toThrow(/posledný|admin/i);
+  });
+
+  test("s druhým adminom demotion prvého prejde, posledného už nie", async () => {
+    await pridajAdmina2();
+    // 2 admini → demotion prvého OK
+    await zmenRolu(db, {
+      adminId: ADMIN2,
+      id: zaklad.adminId,
+      role: "ekonom",
+    });
+    // teraz je ADMIN2 posledný → demotion blokovaná
+    await expect(
+      zmenRolu(db, { adminId: ADMIN2, id: ADMIN2, role: "laborant" }),
+    ).rejects.toThrow(/posledný/i);
+  });
+
+  test("nastavAktivny: deaktivácia posledného admina (iným účtom) → chyba", async () => {
+    await pridajAdmina2();
+    // deaktivácia jedného z dvoch adminov OK
+    await nastavAktivny(db, {
+      adminId: zaklad.adminId,
+      id: ADMIN2,
+      isActive: false,
+    });
+    // seeded admin je teraz jediný aktívny → deaktivácia (cez ADMIN2) blokovaná
+    await expect(
+      nastavAktivny(db, {
+        adminId: ADMIN2,
+        id: zaklad.adminId,
+        isActive: false,
+      }),
+    ).rejects.toThrow(/posledný/i);
+  });
+});
+
 describe("zoznamPouzivatelov", () => {
   test("vráti všetkých vrátane admina", async () => {
     await vytvorUsersZaznam(db, {

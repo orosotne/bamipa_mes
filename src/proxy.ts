@@ -5,7 +5,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/proxy-session";
 
-const STATICKE = /\.(css|js|map|json|svg|png|jpg|jpeg|gif|webp|ico|woff2?|ttf|eot)$/;
+// POZOR: `json` zámerne NIE JE v zozname — inak by page routa končiaca na .json
+// (napr. /faktury/x.json) preskočila updateSession, nedostala by x-pathname a
+// (app) layout by spadol na fail-open fallback "/". Skutočná statika je pod
+// /_next (chytené startsWith nižšie) alebo tieto prípony.
+const STATICKE = /\.(css|js|map|svg|png|jpg|jpeg|gif|webp|ico|woff2?|ttf|eot)$/;
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -19,6 +23,8 @@ export async function proxy(request: NextRequest) {
   return updateSession(request);
 }
 
-export const proxyConfig = {
+// Next.js 16 číta matcher IBA z exportu `config` (nie `proxyConfig`) —
+// extractExportedConstValue(ast, 'config'). In-function guard vyššie je poistka.
+export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

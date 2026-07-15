@@ -192,6 +192,13 @@ export async function stornoVykon(
     if (!run) throw new Error("Výkon neexistuje alebo už je stornovaný.");
 
     const teraz = new Date();
+    // NAJPRV výkon: jeho trigger berie zámky v kanonickom poradí dávka →
+    // príkaz. Deti až potom — ich trigger zamyká len príkaz (už držíme);
+    // opačné poradie by so súbežným zapisVykon tvorilo AB-BA deadlock.
+    await tx
+      .update(schema.pressRuns)
+      .set({ deletedAt: teraz })
+      .where(eq(schema.pressRuns.id, vstup.id));
     await tx
       .update(schema.pressRunDefects)
       .set({ deletedAt: teraz })
@@ -210,10 +217,6 @@ export async function stornoVykon(
           isNull(schema.pressRunDowntimes.deletedAt),
         ),
       );
-    await tx
-      .update(schema.pressRuns)
-      .set({ deletedAt: teraz })
-      .where(eq(schema.pressRuns.id, vstup.id));
 
     await tx.insert(schema.auditLog).values({
       tableName: "press_runs",

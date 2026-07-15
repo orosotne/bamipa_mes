@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import { ulozArtikelAction } from "../actions";
 
 type Artikel = {
@@ -44,12 +45,14 @@ export function ArticleDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [mixtureId, setMixtureId] = useState(artikel?.mixtureId ?? "");
+  const [isActive, setIsActive] = useState(artikel?.isActive ?? true);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
 
   function onOpenChange(next: boolean) {
     if (next) {
       setMixtureId(artikel?.mixtureId ?? "");
+      setIsActive(artikel?.isActive ?? true);
     }
     setOpen(next);
   }
@@ -67,7 +70,7 @@ export function ArticleDialog({
         mixtureKgPerPair: String(formData.get("mixtureKgPerPair") ?? ""),
         targetCycleSeconds: String(formData.get("targetCycleSeconds") ?? ""),
         salePriceEur: String(formData.get("salePriceEur") ?? ""),
-        isActive: artikel ? artikel.isActive : true,
+        isActive,
       });
       if (vysledok.ok) {
         toast.success(artikel ? "Artikel upravený." : "Artikel vytvorený.");
@@ -163,6 +166,32 @@ export function ArticleDialog({
               }
             />
           </div>
+          {artikel && (
+            <div className="flex flex-col gap-1.5">
+              <Label>Stav</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant={isActive ? "default" : "outline"}
+                  className={cn("h-10")}
+                  onClick={() => setIsActive(true)}
+                >
+                  Aktívny
+                </Button>
+                <Button
+                  type="button"
+                  variant={!isActive ? "default" : "outline"}
+                  className={cn("h-10")}
+                  onClick={() => setIsActive(false)}
+                >
+                  Vyradený
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Vyradený artikel sa neponúka pri zakladaní nových príkazov.
+              </p>
+            </div>
+          )}
           <Button type="submit" disabled={pending} className="mt-2">
             {pending ? "Ukladám…" : "Uložiť"}
           </Button>

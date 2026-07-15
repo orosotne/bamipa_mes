@@ -2,7 +2,7 @@
 // Invariant Σ expedované ≤ Σ vyrobené stráži DB trigger (0004) row-lockom
 // na work_orders; služba zamyká príkazy v deterministickom poradí (podľa id)
 // proti deadlocku a čísluje DL s retry na 23505 (vzor príjemky).
-import { and, eq, isNull } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import type { DbClient } from "@/db";
 import * as schema from "@/db/schema";
 import { sqlState } from "@/server/action-utils";
@@ -123,6 +123,28 @@ export async function stornoDodaciList(
       );
     if (!shipment) {
       throw new Error("Dodací list neexistuje alebo už je stornovaný.");
+    }
+
+    // Zámky príkazov v deterministickom poradí (podľa id) PRED mazaním
+    // položiek — jeden UPDATE by ich cez triggre zamykal v poradí skenu
+    // riadkov a so súbežným vytvorDodaciList by mohol tvoriť deadlock.
+    const zivePolozky = await tx
+      .select({ workOrderId: schema.shipmentItems.workOrderId })
+      .from(schema.shipmentItems)
+      .where(
+        and(
+          eq(schema.shipmentItems.shipmentId, vstup.id),
+          isNull(schema.shipmentItems.deletedAt),
+        ),
+      );
+    const prikazIds = [...new Set(zivePolozky.map((p) => p.workOrderId))];
+    if (prikazIds.length > 0) {
+      await tx
+        .select({ id: schema.workOrders.id })
+        .from(schema.workOrders)
+        .where(inArray(schema.workOrders.id, prikazIds))
+        .orderBy(asc(schema.workOrders.id))
+        .for("update");
     }
 
     const teraz = new Date();

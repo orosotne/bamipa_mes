@@ -71,13 +71,14 @@ export function smieVidietRoute(role: UserRole, pathname: string): boolean {
 
 /**
  * Domovský modul roly (kam presmerovať po prihlásení / z „/"). null = rola
- * nemá v F1 pridelený modul (majster_lisovne — modul pribudne s F2/M6);
- * takého používateľa necháme na „/" s neutrálnou hláškou (žiadny loop).
+ * nemá pridelený modul; takého používateľa necháme na „/" s neutrálnou
+ * hláškou (žiadny loop).
  */
 export function domovModul(role: UserRole): string | null {
   if (role === "admin" || role === "ekonom") return "/faktury";
   if (role === "majster_valcovne") return "/vyroba";
   if (role === "laborant") return "/labak";
+  if (role === "majster_lisovne") return "/lisovna";
   return null;
 }
 

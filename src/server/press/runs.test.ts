@@ -265,6 +265,59 @@ describe("nemennosť a storno výkonu", () => {
     expect(druhy.run.mixtureKg).toBe("100.000");
   });
 
+  test("na zmazaný príkaz nejde INSERT výkonu (DB trigger, defense-in-depth)", async () => {
+    const prikaz = await novyPrikaz();
+    const davka = await pripravSchvalenuDavku(db, z, lz);
+    await db
+      .update(schema.workOrders)
+      .set({ deletedAt: new Date() })
+      .where(eq(schema.workOrders.id, prikaz.id));
+
+    await expect(
+      db.insert(schema.pressRuns).values({
+        workOrderId: prikaz.id,
+        machineId: lz.lis.id,
+        batchId: davka.id,
+        runDate: "2026-07-15",
+        shift: "ranna",
+        cyclesCount: 10,
+        pairsProduced: 20,
+        mixtureKg: "5.000",
+        workerId: z.pracovnik.id,
+        createdBy: z.adminId,
+      }),
+    ).rejects.toSatisfy((e) => plnaHlaska(e).includes("zmazaný"));
+  });
+
+  test("na stornovaný výkon nejde pridať nepodarok (DB trigger)", async () => {
+    const prikaz = await novyPrikaz();
+    const davka = await pripravSchvalenuDavku(db, z, lz);
+    const { run } = await zapisVykon(db, vykonVstup(prikaz.id, davka.id));
+    await stornoVykon(db, { userId: z.adminId, id: run.id });
+
+    await expect(
+      db.insert(schema.pressRunDefects).values({
+        pressRunId: run.id,
+        defectReasonId: lz.dovod.id,
+        qtyPairs: 1,
+        createdBy: z.adminId,
+      }),
+    ).rejects.toSatisfy((e) => plnaHlaska(e).includes("stornovaný"));
+  });
+
+  test("soft delete schválenej dávky so živými výkonmi zastaví DB trigger", async () => {
+    const prikaz = await novyPrikaz();
+    const davka = await pripravSchvalenuDavku(db, z, lz);
+    await zapisVykon(db, vykonVstup(prikaz.id, davka.id));
+
+    await expect(
+      db
+        .update(schema.productionBatches)
+        .set({ deletedAt: new Date() })
+        .where(eq(schema.productionBatches.id, davka.id)),
+    ).rejects.toSatisfy((e) => plnaHlaska(e).includes("nemožno zmazať"));
+  });
+
   test("storno výkonu pod už expedované množstvo zastaví DB trigger", async () => {
     const prikaz = await novyPrikaz();
     const davka = await pripravSchvalenuDavku(db, z, lz);

@@ -70,12 +70,12 @@ describe("smieVidietRoute", () => {
 });
 
 describe("domovModul", () => {
-  test("mapuje rolu na domovský modul; majster_lisovne (F1) → null", () => {
+  test("mapuje rolu na domovský modul", () => {
     expect(domovModul("admin")).toBe("/faktury");
     expect(domovModul("ekonom")).toBe("/faktury");
     expect(domovModul("majster_valcovne")).toBe("/vyroba");
     expect(domovModul("laborant")).toBe("/labak");
-    expect(domovModul("majster_lisovne")).toBeNull();
+    expect(domovModul("majster_lisovne")).toBe("/lisovna");
   });
 });
 

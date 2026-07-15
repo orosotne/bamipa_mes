@@ -65,7 +65,7 @@ describe("zapisOrez", () => {
 });
 
 describe("zmazOrez", () => {
-  test("soft delete záznamu orezu", async () => {
+  test("soft delete záznamu orezu + audit trail (SPEC §4)", async () => {
     const zaznam = await zapisOrez(db, {
       userId: z.adminId,
       workOrderId: prikazId,
@@ -78,6 +78,14 @@ describe("zmazOrez", () => {
       .from(schema.scrapRecords)
       .where(eq(schema.scrapRecords.id, zaznam.id));
     expect(po.deletedAt).not.toBeNull();
+
+    const audit = await db
+      .select()
+      .from(schema.auditLog)
+      .where(eq(schema.auditLog.recordId, zaznam.id));
+    expect(audit).toHaveLength(1);
+    expect(audit[0].action).toBe("delete");
+    expect(audit[0].changedBy).toBe(z.adminId);
   });
 });
 

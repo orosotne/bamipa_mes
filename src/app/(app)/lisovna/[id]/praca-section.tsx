@@ -106,6 +106,10 @@ export function PracaSection({
     <Card>
       <CardHeader>
         <CardTitle>Práca lisovne</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Hodiny za všetky kroky: lisovanie, orezávanie, zapravovanie a
+          balenie — vstup nákladu na pár.
+        </p>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {praca.length > 0 && (

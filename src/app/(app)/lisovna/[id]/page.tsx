@@ -164,7 +164,12 @@ export default async function PrikazDetailPage({
           <div>
             <div className="text-muted-foreground">Založený</div>
             <div className="font-medium">
-              {formatDatum(detail.prikaz.createdAt.toISOString().slice(0, 10))}
+              {/* SPEC §6: Europe/Bratislava — toISOString by dal UTC deň. */}
+              {formatDatum(
+                detail.prikaz.createdAt.toLocaleDateString("en-CA", {
+                  timeZone: "Europe/Bratislava",
+                }),
+              )}
             </div>
           </div>
           {detail.prikaz.note && (

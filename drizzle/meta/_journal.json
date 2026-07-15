@@ -36,6 +36,13 @@
       "when": 1784139010168,
       "tag": "0004_m6_rls_guards",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1784146200000,
+      "tag": "0005_m6_guard_hardening",
+      "breakpoints": true
     }
   ]
 }

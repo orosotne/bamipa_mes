@@ -45,19 +45,30 @@ export async function zmazPracu(
   db: DbClient,
   vstup: { userId: string; id: string },
 ): Promise<void> {
-  const [zaznam] = await db
-    .select({ id: schema.workOrderLabor.id })
-    .from(schema.workOrderLabor)
-    .where(
-      and(
-        eq(schema.workOrderLabor.id, vstup.id),
-        isNull(schema.workOrderLabor.deletedAt),
-      ),
-    );
-  if (!zaznam) throw new Error("Záznam práce neexistuje.");
+  return db.transaction(async (tx) => {
+    const [zaznam] = await tx
+      .select({ id: schema.workOrderLabor.id })
+      .from(schema.workOrderLabor)
+      .where(
+        and(
+          eq(schema.workOrderLabor.id, vstup.id),
+          isNull(schema.workOrderLabor.deletedAt),
+        ),
+      );
+    if (!zaznam) throw new Error("Záznam práce neexistuje.");
 
-  await db
-    .update(schema.workOrderLabor)
-    .set({ deletedAt: new Date() })
-    .where(eq(schema.workOrderLabor.id, vstup.id));
+    await tx
+      .update(schema.workOrderLabor)
+      .set({ deletedAt: new Date() })
+      .where(eq(schema.workOrderLabor.id, vstup.id));
+
+    // SPEC §4: audit trail — soft delete by inak nezachytil KTO mazal.
+    await tx.insert(schema.auditLog).values({
+      tableName: "work_order_labor",
+      recordId: vstup.id,
+      action: "delete",
+      changedBy: vstup.userId,
+      changes: null,
+    });
+  });
 }

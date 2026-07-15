@@ -172,6 +172,25 @@ describe("stornoDodaciList", () => {
     expect(druhy.items[0].qtyPairs).toBe(230);
   });
 
+  test("na stornovaný DL nejde vložiť položku (DB trigger, defense-in-depth)", async () => {
+    const { shipment } = await vytvorDodaciList(db, {
+      userId: z.adminId,
+      shipDate: "2026-07-16",
+      customer: "LOWA",
+      polozky: [{ workOrderId: prikazId, qtyPairs: 10 }],
+    });
+    await stornoDodaciList(db, { userId: z.adminId, id: shipment.id });
+
+    await expect(
+      db.insert(schema.shipmentItems).values({
+        shipmentId: shipment.id,
+        workOrderId: prikazId,
+        qtyPairs: 5,
+        createdBy: z.adminId,
+      }),
+    ).rejects.toSatisfy((e) => plnaHlaska(e).includes("stornovaný"));
+  });
+
   test("hard DELETE položky DL zastaví DB trigger", async () => {
     const { items } = await vytvorDodaciList(db, {
       userId: z.adminId,

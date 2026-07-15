@@ -17,7 +17,7 @@ import {
   softDeleteMixture,
   updateMixture,
 } from "@/server/mixtures/service";
-import { getCurrentUser } from "@/server/session";
+import { vyzadajRolu } from "@/server/session";
 
 const zmesSchema = z.object({
   code: z.string().trim().min(1, "Kód zmesi je povinný."),
@@ -31,7 +31,7 @@ export async function ulozZmesAction(
 ): Promise<VysledokAkcie> {
   try {
     const data = zmesSchema.parse(vstup);
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db);
     const zmes = id
       ? await updateMixture(db, { userId: user.id, id, ...data })
       : await createMixture(db, { userId: user.id, ...data });
@@ -44,7 +44,7 @@ export async function ulozZmesAction(
 
 export async function zmazZmesAction(id: string): Promise<VysledokAkcie> {
   try {
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db);
     await softDeleteMixture(db, { userId: user.id, id });
     revalidatePath("/receptury");
     return { ok: true };
@@ -72,7 +72,7 @@ export async function vytvorVerziuAction(
 ): Promise<VysledokAkcie> {
   try {
     const data = verziaSchema.parse(vstup);
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db);
 
     await createRecipeVersion(db, {
       userId: user.id,
@@ -98,7 +98,7 @@ export async function aktivujVerziuAction(
   recipeId: string,
 ): Promise<VysledokAkcie> {
   try {
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db);
     await aktivujVerziu(db, { userId: user.id, recipeId });
     revalidatePath(`/receptury/${mixtureId}`);
     revalidatePath("/receptury");
@@ -121,7 +121,7 @@ export async function ulozLimitAction(
 ): Promise<VysledokAkcie> {
   try {
     const data = limitSchema.parse(vstup);
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db);
     await ulozLimit(db, {
       userId: user.id,
       mixtureId: data.mixtureId,

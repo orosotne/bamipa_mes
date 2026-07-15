@@ -12,6 +12,9 @@ import { formatQty, parseQty } from "@/server/inventory/money";
 
 const MAX_POKUSY = 3;
 
+// numeric(10,3) → max 7 celých miest → |hodnota| < 10^7 (milli < 10^10).
+const MAX_HODNOTA_MILLI = 10_000_000_000n;
+
 /** Nameraná hodnota → { milli (×10³ pre presné porovnanie), kanon numeric(10,3) }. */
 function pripravHodnotu(input: string): { milli: bigint; kanon: string } {
   const t = String(input).replace(/[\s ]/g, "").replace(",", ".");
@@ -19,6 +22,11 @@ function pripravHodnotu(input: string): { milli: bigint; kanon: string } {
     throw new Error(`Neplatná nameraná hodnota: „${input}".`);
   }
   const milli = parseQty(t);
+  if (milli >= MAX_HODNOTA_MILLI || milli <= -MAX_HODNOTA_MILLI) {
+    throw new Error(
+      `Nameraná hodnota „${input}" je mimo rozsahu (max 7 celých miest).`,
+    );
+  }
   return { milli, kanon: formatQty(milli) };
 }
 

@@ -623,6 +623,13 @@ export const labTests = pgTable(
     // Cieľ kompozitnej FK z batch_adjustments — UNIQUE CONSTRAINT (nie index),
     // musí existovať už v CREATE TABLE (drizzle-kit generuje FK pred indexmi).
     unique("lab_tests_id_batch_uq").on(t.id, t.batchId),
+    // Najviac JEDNO rozpracované meranie (bez verdiktu) na dávku — DB backstop
+    // proti súbehu dvoch zápisov (app-level SELECT check nie je pod READ COMMITTED
+    // atomický). Pri porušení vznikne 23505 → retry v zapisMerania hodí slovenskú
+    // hlášku „Dávka už má rozpracované meranie bez verdiktu".
+    uniqueIndex("lab_tests_one_open_per_batch_uq")
+      .on(t.batchId)
+      .where(sql`verdict IS NULL AND deleted_at IS NULL`),
     // Verdikt vždy s podpisom a časom, alebo vôbec.
     check(
       "lab_tests_verdict_signed",

@@ -23,7 +23,7 @@ import {
   softDeleteMaterial,
   updateMaterial,
 } from "@/server/materials/service";
-import { getCurrentUser } from "@/server/session";
+import { vyzadajRolu } from "@/server/session";
 import { generujCisloPrijemky } from "@/server/warehouse/numbering";
 
 const materialSchema = z.object({
@@ -49,7 +49,7 @@ export async function ulozMaterialAction(
 ): Promise<VysledokAkcie> {
   try {
     const data = materialSchema.parse(vstup);
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db, "ekonom");
 
     const polia = {
       userId: user.id,
@@ -86,7 +86,7 @@ export async function ulozMaterialAction(
 
 export async function zmazMaterialAction(id: string): Promise<VysledokAkcie> {
   try {
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db, "ekonom");
     await softDeleteMaterial(db, { userId: user.id, id });
     revalidatePath("/sklad");
     return { ok: true };
@@ -109,7 +109,7 @@ export async function inventurnaKorekciaAction(
 ): Promise<VysledokAkcie> {
   try {
     const data = korekciaSchema.parse(vstup);
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db, "ekonom");
 
     const qty = normalizujQty(data.qty);
     try {
@@ -147,7 +147,7 @@ export async function cenovaKorekciaAction(
 ): Promise<VysledokAkcie> {
   try {
     const data = cenovaKorekciaSchema.parse(vstup);
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db, "ekonom");
 
     await cenovaKorekcia(db, {
       userId: user.id,
@@ -177,7 +177,7 @@ export async function inventurnaKorekciaMaterialuAction(
 ): Promise<VysledokAkcie> {
   try {
     const data = korekciaMaterialuSchema.parse(vstup);
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db, "ekonom");
 
     await inventurnaKorekciaMaterialu(db, {
       userId: user.id,
@@ -222,7 +222,7 @@ export async function vytvorPrijemkuAction(
     if (data.source === "faktura" && !data.invoiceId) {
       throw new Error("Pri príjme z faktúry vyber faktúru.");
     }
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db, "ekonom");
 
     const polozky = data.polozky.map((p) => ({
       materialId: p.materialId,

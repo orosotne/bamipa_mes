@@ -12,7 +12,7 @@ import {
   pridatPlatbu,
   schvalitFakturu,
 } from "@/server/invoices/service";
-import { getCurrentUser } from "@/server/session";
+import { vyzadajRolu } from "@/server/session";
 
 const sumaEur = z
   .string()
@@ -53,7 +53,7 @@ export async function vytvorFakturuAction(
 ): Promise<VysledokAkcie> {
   try {
     const data = fakturaSchema.parse(vstup);
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db, "ekonom");
 
     const totalNetCents = parseEurToCents(data.sumaNetEur);
     const totalVatCents = parseEurToCents(data.sumaVatEur);
@@ -86,7 +86,7 @@ export async function vytvorFakturuAction(
 
 export async function schvalFakturuAction(id: string): Promise<VysledokAkcie> {
   try {
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db, "ekonom");
     await schvalitFakturu(db, { userId: user.id, id });
     revalidatePath("/faktury");
     revalidatePath(`/faktury/${id}`);
@@ -102,7 +102,7 @@ export async function pridajPlatbuAction(vstup: {
   sumaEur: string;
 }): Promise<VysledokAkcie> {
   try {
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db, "ekonom");
     await pridatPlatbu(db, {
       userId: user.id,
       invoiceId: vstup.invoiceId,

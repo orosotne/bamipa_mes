@@ -21,7 +21,7 @@ import {
 } from "@/server/batches/service";
 import { generujCisloDavky } from "@/server/batches/numbering";
 import { stornoVydaja } from "@/server/inventory/corrections";
-import { getCurrentUser } from "@/server/session";
+import { vyzadajRolu } from "@/server/session";
 
 const novaDavkaSchema = z.object({
   mixtureId: z.string().uuid("Vyber zmes."),
@@ -38,7 +38,7 @@ export async function zalozDavkuAction(
 ): Promise<VysledokAkcie> {
   try {
     const data = novaDavkaSchema.parse(vstup);
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db, "majster_valcovne");
     const rok = Number(data.productionDate.slice(0, 4));
     const scaleFactor = data.scaleFactor
       ? normalizujQty(data.scaleFactor, "Násobok dávky")
@@ -87,7 +87,7 @@ export async function vydajNavazkuAction(
 ): Promise<VysledokAkcie> {
   try {
     const data = vydajSchema.parse(vstup);
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db, "majster_valcovne");
     await vydajNavazkuDavky(db, {
       userId: user.id,
       batchId: data.batchId,
@@ -108,7 +108,7 @@ export async function stornoVydajaBatchAction(vstup: {
   batchId: string;
 }): Promise<VysledokAkcie> {
   try {
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db, "majster_valcovne");
     await stornoVydaja(db, { userId: user.id, moveId: vstup.moveId });
     revalidatePath(`/vyroba/${vstup.batchId}`);
     return { ok: true };
@@ -129,7 +129,7 @@ export async function pridajPracuAction(
 ): Promise<VysledokAkcie> {
   try {
     const data = pracaSchema.parse(vstup);
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db, "majster_valcovne");
     await pridajPracu(db, {
       userId: user.id,
       batchId: data.batchId,
@@ -156,7 +156,7 @@ export async function pridajPrestojAction(
 ): Promise<VysledokAkcie> {
   try {
     const data = prestojSchema.parse(vstup);
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db, "majster_valcovne");
     await pridajPrestoj(db, {
       userId: user.id,
       batchId: data.batchId,
@@ -176,7 +176,7 @@ export async function zmazPrestojAction(vstup: {
   batchId: string;
 }): Promise<VysledokAkcie> {
   try {
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db, "majster_valcovne");
     await zmazPrestoj(db, { userId: user.id, id: vstup.id });
     revalidatePath(`/vyroba/${vstup.batchId}`);
     return { ok: true };
@@ -198,7 +198,7 @@ export async function aktualizujCasyAction(
 ): Promise<VysledokAkcie> {
   try {
     const data = casySchema.parse(vstup);
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db, "majster_valcovne");
     await aktualizujCasy(db, {
       userId: user.id,
       batchId: data.batchId,
@@ -221,7 +221,7 @@ export async function odovzdajNaLabakAction(
 ): Promise<VysledokAkcie> {
   try {
     const data = odovzdajSchema.parse(vstup);
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db, "majster_valcovne");
     await odovzdajNaLabak(db, {
       userId: user.id,
       batchId: data.batchId,

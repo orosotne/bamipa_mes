@@ -11,7 +11,7 @@ import {
   softDeleteMachine,
   updateMachine,
 } from "@/server/machines/service";
-import { getCurrentUser } from "@/server/session";
+import { vyzadajRolu } from "@/server/session";
 import {
   createWorker,
   pridajSadzbu,
@@ -32,7 +32,7 @@ export async function ulozStrojAction(
 ): Promise<VysledokAkcie> {
   try {
     const data = strojSchema.parse(vstup);
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db);
     if (id) {
       await updateMachine(db, { userId: user.id, id, ...data });
     } else {
@@ -47,7 +47,7 @@ export async function ulozStrojAction(
 
 export async function zmazStrojAction(id: string): Promise<VysledokAkcie> {
   try {
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db);
     await softDeleteMachine(db, { userId: user.id, id });
     revalidatePath("/ciselniky");
     return { ok: true };
@@ -67,7 +67,7 @@ export async function ulozPracovnikaAction(
 ): Promise<VysledokAkcie> {
   try {
     const data = pracovnikSchema.parse(vstup);
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db);
     if (id) {
       await updateWorker(db, { userId: user.id, id, ...data });
     } else {
@@ -82,7 +82,7 @@ export async function ulozPracovnikaAction(
 
 export async function zmazPracovnikaAction(id: string): Promise<VysledokAkcie> {
   try {
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db);
     await softDeleteWorker(db, { userId: user.id, id });
     revalidatePath("/ciselniky");
     return { ok: true };
@@ -102,7 +102,7 @@ export async function pridajSadzbuAction(
 ): Promise<VysledokAkcie> {
   try {
     const data = sadzbaSchema.parse(vstup);
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db);
     await pridajSadzbu(db, {
       userId: user.id,
       workerId: data.workerId,

@@ -255,6 +255,35 @@ describe("zapisMerania", () => {
       }),
     ).rejects.toThrow(/hodnot/i);
   });
+
+  test("hodnota mimo rozsahu numeric(10,3) → slovenská chyba (nie surová PG)", async () => {
+    const davka = await pripravDavkuNaLabak(db, zaklad);
+    await expect(
+      zapisMerania(db, {
+        userId: laborantId,
+        batchId: davka.id,
+        merania: merania({ ML: "12345678", MH: "50.000", TS2: "2.000" }),
+      }),
+    ).rejects.toThrow(/rozsah/i);
+  });
+
+  test("DB backstop: druhé otvorené meranie na dávku → unique index blokuje", async () => {
+    const davka = await pripravDavkuNaLabak(db, zaklad);
+    await zapisMerania(db, {
+      userId: laborantId,
+      batchId: davka.id,
+      merania: merania(V_LIMITE),
+    });
+    // priamy insert druhého testu bez verdiktu (obíde app check) — partial
+    // unique index lab_tests_one_open_per_batch_uq to musí odmietnuť
+    await expect(
+      db.insert(schema.labTests).values({
+        batchId: davka.id,
+        sequenceNo: 99,
+        createdBy: laborantId,
+      }),
+    ).rejects.toThrow();
+  });
 });
 
 describe("vynesVerdikt", () => {

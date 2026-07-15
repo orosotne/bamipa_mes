@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db";
 import { naVysledok, type VysledokAkcie } from "@/server/action-utils";
-import { getCurrentUser } from "@/server/session";
+import { vyzadajRolu } from "@/server/session";
 import {
   createSupplier,
   softDeleteSupplier,
@@ -33,7 +33,7 @@ export async function vytvorDodavatelaAction(
 ): Promise<VysledokAkcie> {
   try {
     const data = dodavatelSchema.parse(vstup);
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db, "ekonom");
     await createSupplier(db, {
       userId: user.id,
       ...data,
@@ -52,7 +52,7 @@ export async function upravDodavatelaAction(
 ): Promise<VysledokAkcie> {
   try {
     const data = dodavatelSchema.parse(vstup);
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db, "ekonom");
     await updateSupplier(db, {
       userId: user.id,
       id,
@@ -68,7 +68,7 @@ export async function upravDodavatelaAction(
 
 export async function zmazDodavatelaAction(id: string): Promise<VysledokAkcie> {
   try {
-    const user = await getCurrentUser(db);
+    const user = await vyzadajRolu(db, "ekonom");
     await softDeleteSupplier(db, { userId: user.id, id });
     revalidatePath("/dodavatelia");
     return { ok: true };

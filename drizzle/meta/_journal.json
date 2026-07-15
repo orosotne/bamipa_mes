@@ -15,6 +15,13 @@
       "when": 1783918345933,
       "tag": "0001_rls_triggers_guards",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784110908360,
+      "tag": "0002_salty_hex",
+      "breakpoints": true
     }
   ]
 }

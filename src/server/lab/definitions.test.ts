@@ -114,6 +114,18 @@ describe("ulozLimit", () => {
       }),
     ).rejects.toThrow(/maxim|minim/i);
   });
+
+  test("limit mimo rozsahu numeric(10,3) → slovenská chyba", async () => {
+    await expect(
+      ulozLimit(db, {
+        userId: zaklad.adminId,
+        mixtureId: zaklad.zmes.id,
+        parameterId: params.ML.id,
+        minValue: "99999999",
+        maxValue: "",
+      }),
+    ).rejects.toThrow(/rozsah/i);
+  });
 });
 
 describe("limityPreZmes", () => {

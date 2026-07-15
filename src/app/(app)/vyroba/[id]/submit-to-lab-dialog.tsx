@@ -16,7 +16,13 @@ import { Label } from "@/components/ui/label";
 import { useFormDraft } from "@/lib/use-form-draft";
 import { odovzdajNaLabakAction } from "../actions";
 
-export function SubmitToLabDialog({ batchId }: { batchId: string }) {
+export function SubmitToLabDialog({
+  batchId,
+  label = "Odovzdať na labák",
+}: {
+  batchId: string;
+  label?: string;
+}) {
   const [open, setOpen] = useState(false);
   const [outputKg, setOutputKg, clearOutputKg] = useFormDraft(
     `bamipa:vyroba:${batchId}:outputKg`,
@@ -45,7 +51,7 @@ export function SubmitToLabDialog({ batchId }: { batchId: string }) {
       <DialogTrigger
         render={
           <Button size="lg" className="h-16 w-full text-lg">
-            Odovzdať na labák
+            {label}
           </Button>
         }
       />

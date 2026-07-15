@@ -1,31 +1,61 @@
-// DECISION-PENDING (D9 — Auth): dočasný session stub do zavedenia Supabase Auth.
-// Vracia prvého aktívneho admina — na dev DB je to seedovaný „Dev Admin".
-// Auth krok tento súbor nahradí čítaním Supabase session (users.id = auth.users.id).
-import { and, asc, eq, isNull } from "drizzle-orm";
+// Aktuálny používateľ z Supabase Auth session. getClaims() validuje JWT podpis
+// (na rozdiel od getSession, ktorému sa v server kóde nesmie veriť). Rola pre
+// autorizáciu sa berie VÝHRADNE z DB users.role (join podľa auth id = users.id),
+// NIE z JWT/user_metadata (user-editovateľné).
+import { and, eq, isNull } from "drizzle-orm";
+import { redirect } from "next/navigation";
 import type { DbClient } from "@/db";
 import * as schema from "@/db/schema";
+import type { UserRole } from "@/lib/enums";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { overRolu } from "@/server/rbac";
 
-export async function getCurrentUser(
+/** Aktívny (nezmazaný) používateľ podľa auth id, alebo null. Testovateľné. */
+export async function pouzivatelPodlaId(
   db: DbClient,
-): Promise<typeof schema.users.$inferSelect> {
+  id: string,
+): Promise<typeof schema.users.$inferSelect | null> {
   const [user] = await db
     .select()
     .from(schema.users)
     .where(
       and(
-        eq(schema.users.role, "admin"),
+        eq(schema.users.id, id),
         eq(schema.users.isActive, true),
         isNull(schema.users.deletedAt),
       ),
-    )
-    .orderBy(asc(schema.users.createdAt))
-    .limit(1);
-
-  if (!user) {
-    throw new Error(
-      "Žiadny aktívny admin v databáze — spusti dev DB (npm run dev:db) alebo seed.",
     );
-  }
+  return user ?? null;
+}
+
+/**
+ * Prihlásený používateľ (s rolou) pre Server Components a server actions.
+ * Bez platnej session alebo bez zodpovedajúceho aktívneho záznamu v users →
+ * redirect na /login (Proxy to drží aj na úrovni routovania).
+ */
+export async function getCurrentUser(
+  db: DbClient,
+): Promise<typeof schema.users.$inferSelect> {
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase.auth.getClaims();
+  const sub = data?.claims?.sub;
+  if (!sub) redirect("/login");
+
+  const user = await pouzivatelPodlaId(db, sub);
+  if (!user) redirect("/login");
+  return user;
+}
+
+/**
+ * Prihlásený používateľ + overenie roly pre server actions (jeden krok).
+ * Bez uvedenia povolených rolí = len admin. Admin prejde vždy.
+ */
+export async function vyzadajRolu(
+  db: DbClient,
+  ...povolene: UserRole[]
+): Promise<typeof schema.users.$inferSelect> {
+  const user = await getCurrentUser(db);
+  overRolu(user.role, ...povolene);
   return user;
 }
 

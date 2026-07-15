@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "lab_tests_one_open_per_batch_uq" ON "lab_tests" USING btree ("batch_id") WHERE verdict IS NULL AND deleted_at IS NULL;

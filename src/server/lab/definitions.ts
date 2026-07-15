@@ -5,6 +5,9 @@ import type { DbClient } from "@/db";
 import * as schema from "@/db/schema";
 import { formatQty, parseQty } from "@/server/inventory/money";
 
+// numeric(10,3) → max 7 celých miest → |limit| < 10^7 (milli < 10^10).
+const MAX_LIMIT_MILLI = 10_000_000_000n;
+
 /** "12,5" / "10" / "" / null → "12.500" | null (prázdne = bez limitu). */
 function normalizujLimit(input: string | null | undefined): string | null {
   if (input === null || input === undefined) return null;
@@ -13,7 +16,11 @@ function normalizujLimit(input: string | null | undefined): string | null {
   if (!/^-?\d+(\.\d{1,3})?$/.test(t)) {
     throw new Error(`Neplatná hodnota limitu: „${input}".`);
   }
-  return formatQty(parseQty(t));
+  const milli = parseQty(t);
+  if (milli >= MAX_LIMIT_MILLI || milli <= -MAX_LIMIT_MILLI) {
+    throw new Error(`Hodnota limitu „${input}" je mimo rozsahu (max 7 celých miest).`);
+  }
+  return formatQty(milli);
 }
 
 /**

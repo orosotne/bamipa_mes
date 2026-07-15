@@ -9,12 +9,15 @@ import * as schema from "@/db/schema";
 import { formatCentsToEur, formatDatum, zobrazQty } from "@/lib/format";
 import { ZMENY, type Zmena } from "@/lib/enums";
 import { detailDavky } from "@/server/batches/queries";
+import { aktivnaUprava } from "@/server/lab/queries";
+import { listMaterials } from "@/server/materials/service";
 import { listWorkers } from "@/server/workers/service";
 import { BatchStatusBadge } from "../batch-status-badge";
 import { CasySection } from "./casy-section";
 import { NavazkaSection } from "./navazka-section";
 import { PracaSection } from "./praca-section";
 import { PrestojeSection } from "./prestoje-section";
+import { ReworkSection } from "./rework-section";
 import { SubmitToLabDialog } from "./submit-to-lab-dialog";
 
 export const dynamic = "force-dynamic";
@@ -33,7 +36,7 @@ export default async function DavkaDetailPage({
     notFound();
   }
 
-  const [dovody, pracovnici] = await Promise.all([
+  const [dovody, pracovnici, materialy, uprava] = await Promise.all([
     db
       .select({ id: schema.downtimeReasons.id, name: schema.downtimeReasons.name })
       .from(schema.downtimeReasons)
@@ -45,6 +48,8 @@ export default async function DavkaDetailPage({
       )
       .orderBy(asc(schema.downtimeReasons.name)),
     listWorkers(db),
+    listMaterials(db),
+    aktivnaUprava(db, id),
   ]);
 
   const editable = detail.davka.status === "rozpracovana";
@@ -69,14 +74,12 @@ export default async function DavkaDetailPage({
         </div>
       </div>
 
-      {!editable && (
+      {!editable && detail.davka.status !== "zamietnuta" && (
         <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
           {detail.davka.status === "caka_na_labak" &&
             "Dávka čaká na vyhodnotenie labákom — záznam je uzamknutý."}
           {detail.davka.status === "schvalena" &&
             "Dávka bola schválená labákom."}
-          {detail.davka.status === "zamietnuta" &&
-            "Dávka bola zamietnutá labákom — úprava dávky (rework) je súčasť modulu Labák."}
         </div>
       )}
 
@@ -196,6 +199,20 @@ export default async function DavkaDetailPage({
       )}
 
       {editable && <SubmitToLabDialog batchId={id} />}
+
+      {detail.davka.status === "zamietnuta" && uprava && (
+        <ReworkSection
+          batchId={id}
+          adjustmentId={uprava.adjustment.id}
+          instrukcia={uprava.adjustment.description}
+          triggeredBySequenceNo={uprava.triggeredBySequenceNo}
+          vydaje={uprava.vydaje}
+          praca={uprava.praca}
+          materialy={materialy}
+          pracovnici={pracovnici}
+          productionDate={detail.davka.productionDate}
+        />
+      )}
     </div>
   );
 }

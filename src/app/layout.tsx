@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
-import { AppNav } from "@/components/app-nav";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,6 +18,8 @@ export const metadata: Metadata = {
   description: "Interný ERP/MES systém: faktúry, sklad, receptúry, výroba, labák.",
 };
 
+// Holý root layout — shell (sidebar) je v (app) route group, aby /login mohol
+// renderovať bez navigácie.
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -30,18 +31,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        <div className="flex min-h-screen">
-          <aside className="flex w-56 shrink-0 flex-col border-r bg-sidebar px-3 py-5">
-            <div className="mb-6 px-3">
-              <div className="text-lg font-semibold tracking-tight">BAMIPA</div>
-              <div className="text-xs text-muted-foreground">
-                výrobno-nákladový systém
-              </div>
-            </div>
-            <AppNav />
-          </aside>
-          <main className="flex-1 overflow-x-auto px-8 py-6">{children}</main>
-        </div>
+        {children}
         <Toaster richColors position="top-right" />
       </body>
     </html>

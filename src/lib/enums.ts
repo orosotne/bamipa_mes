@@ -49,9 +49,24 @@ export const ZMENY = {
   nocna: "Nočná",
 } as const;
 
+export const VERDIKTY = {
+  schvalene: "Schválené",
+  zamietnute: "Zamietnuté",
+} as const;
+
+export const ROLY = {
+  admin: "Administrátor / konateľ",
+  ekonom: "Ekonóm / back-office",
+  majster_valcovne: "Majster valcovne",
+  laborant: "Laborant",
+  majster_lisovne: "Majster lisovne",
+} as const;
+
 export type KategoriaFaktury = keyof typeof KATEGORIE_FAKTUR;
 export type StavFaktury = keyof typeof STAVY_FAKTUR;
 export type KategoriaMaterialu = keyof typeof KATEGORIE_MATERIALOV;
 export type MernaJednotka = keyof typeof MERNE_JEDNOTKY;
 export type StavDavky = keyof typeof STAVY_DAVOK;
 export type Zmena = keyof typeof ZMENY;
+export type Verdikt = keyof typeof VERDIKTY;
+export type UserRole = keyof typeof ROLY;

@@ -2,6 +2,11 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* Explicitný sken zdrojov — auto-detekcia Tailwind v4 prestala generovať CSS
+   po zavedení route group priečinka „(app)" (zátvorky v ceste). Explicitný
+   @source prehľadá celý src vrátane (app). */
+@source "../**/*.{ts,tsx}";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

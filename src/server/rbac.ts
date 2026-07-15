@@ -70,6 +70,18 @@ export function smieVidietRoute(role: UserRole, pathname: string): boolean {
 }
 
 /**
+ * Domovský modul roly (kam presmerovať po prihlásení / z „/"). null = rola
+ * nemá v F1 pridelený modul (majster_lisovne — modul pribudne s F2/M6);
+ * takého používateľa necháme na „/" s neutrálnou hláškou (žiadny loop).
+ */
+export function domovModul(role: UserRole): string | null {
+  if (role === "admin" || role === "ekonom") return "/faktury";
+  if (role === "majster_valcovne") return "/vyroba";
+  if (role === "laborant") return "/labak";
+  return null;
+}
+
+/**
  * Guard pre server actions — hodí doménovú chybu, ak rola nie je admin ani v
  * zozname povolených. Presnejší než modul (napr. sklad mutácie = len ekonom,
  * hoci /sklad modul vidí aj majster). Bez povolených rolí = len admin.

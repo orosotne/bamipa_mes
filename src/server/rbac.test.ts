@@ -2,6 +2,7 @@
 import { describe, expect, test } from "vitest";
 import type { UserRole } from "@/lib/enums";
 import {
+  domovModul,
   MODULY,
   overRolu,
   smieVidiet,
@@ -65,6 +66,16 @@ describe("smieVidietRoute", () => {
   test("neznáma routa → admin áno, ostatní nie", () => {
     expect(smieVidietRoute("admin", "/nieco-nezname")).toBe(true);
     expect(smieVidietRoute("laborant", "/nieco-nezname")).toBe(false);
+  });
+});
+
+describe("domovModul", () => {
+  test("mapuje rolu na domovský modul; majster_lisovne (F1) → null", () => {
+    expect(domovModul("admin")).toBe("/faktury");
+    expect(domovModul("ekonom")).toBe("/faktury");
+    expect(domovModul("majster_valcovne")).toBe("/vyroba");
+    expect(domovModul("laborant")).toBe("/labak");
+    expect(domovModul("majster_lisovne")).toBeNull();
   });
 });
 

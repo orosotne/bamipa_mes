@@ -1,7 +1,15 @@
 // Zdieľaná seed logika číselníkov — používa ju produkčný seed (src/db/seed.ts)
 // aj lokálna dev DB (scripts/dev-db.ts). Idempotentné (ON CONFLICT DO NOTHING).
+import { and, eq, isNull } from "drizzle-orm";
 import type { DbClient } from "./index";
-import { costCenters, downtimeReasons, labParameters, users } from "./schema";
+import {
+  costCenters,
+  defectReasons,
+  downtimeReasons,
+  labParameters,
+  machines,
+  users,
+} from "./schema";
 
 export async function seedZakladneCiselniky(
   db: DbClient,
@@ -60,6 +68,44 @@ export async function seedZakladneCiselniky(
     await db
       .insert(labParameters)
       .values({ ...p, createdBy: admin.id })
+      .onConflictDoNothing();
+  }
+
+  // 5) Stroje lisovne (SPEC M6 — LIS1–LIS9 + strekolis, stredisko lisovna).
+  // DECISION-PENDING: strekolis má odlišný proces (SPEC §2.3 [DOPLNIŤ]) —
+  // zatiaľ modelovaný identicky, cykly = alokačný kľúč D2 aj preň.
+  const [lisovna] = await db
+    .select({ id: costCenters.id })
+    .from(costCenters)
+    .where(and(eq(costCenters.code, "lisovna"), isNull(costCenters.deletedAt)));
+  if (lisovna) {
+    const stroje = [
+      ...Array.from({ length: 9 }, (_, i) => ({
+        code: `LIS${i + 1}`,
+        name: `Lis ${i + 1}`,
+      })),
+      { code: "STREKOLIS", name: "Strekolis" },
+    ];
+    for (const stroj of stroje) {
+      await db
+        .insert(machines)
+        .values({ ...stroj, costCenterId: lisovna.id, createdBy: admin.id })
+        .onConflictDoNothing();
+    }
+  }
+
+  // 6) Dôvody nepodarkov (SPEC M6 — číselník).
+  const dovodyNepodarkov = [
+    { code: "nedolisok", name: "Nedolisok" },
+    { code: "bublina", name: "Bublina" },
+    { code: "prepal", name: "Prepálená zmes" },
+    { code: "mechanicke_poskodenie", name: "Mechanické poškodenie" },
+    { code: "ine", name: "Iné" },
+  ];
+  for (const dovod of dovodyNepodarkov) {
+    await db
+      .insert(defectReasons)
+      .values({ ...dovod, createdBy: admin.id })
       .onConflictDoNothing();
   }
 }

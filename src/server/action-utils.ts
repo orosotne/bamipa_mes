@@ -11,7 +11,20 @@ export function naVysledok(e: unknown): VysledokAkcie {
   if (e instanceof z.ZodError) {
     return { ok: false, error: e.issues[0]?.message ?? "Neplatné údaje." };
   }
-  return { ok: false, error: e instanceof Error ? e.message : "Neznáma chyba." };
+  if (e instanceof Error) {
+    // DrizzleQueryError balí PG chybu do cause s vlastnou hláškou
+    // "Failed query: …" — používateľovi patrí doménová hláška z RAISE
+    // (DB triggre hovoria po slovensky), nie SQL dump.
+    let aktualna: unknown = e;
+    while (aktualna instanceof Error) {
+      if (!aktualna.message.startsWith("Failed query")) {
+        return { ok: false, error: aktualna.message };
+      }
+      aktualna = aktualna.cause;
+    }
+    return { ok: false, error: e.message };
+  }
+  return { ok: false, error: "Neznáma chyba." };
 }
 
 /** "1 234,5" → "1234.500" (numeric(12,3) string); kladné. */

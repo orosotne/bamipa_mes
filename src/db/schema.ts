@@ -823,6 +823,283 @@ export const stockMoves = pgTable(
   ],
 );
 
+// ───────────────────────────────────── M6 — lisovňa (podošvy) ──
+
+// Číselník dôvodov nepodarkov (SPEC M6). Bez CRUD UI — seed, ako downtime_reasons.
+export const defectReasons = pgTable(
+  "defect_reasons",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    code: text("code").notNull(),
+    name: text("name").notNull(),
+    isActive: boolean("is_active").notNull().default(true),
+    ...audit(),
+  },
+  (t) => [
+    uniqueIndex("defect_reasons_code_uq")
+      .on(t.code)
+      .where(sql`deleted_at IS NULL`),
+  ],
+);
+
+// Katalóg artiklov: artikel = model podošvy, jednotka = pár (D7 — žiadne
+// veľkostné čísla). Norma spotreby zmesi na pár = vstup teoretickej kalkulácie,
+// predajná cena = vstup marže (M7). target_cycle_seconds je zo zadania
+// (budúce KPI taktu), nie zo SPEC — preto nullable.
+export const soleModels = pgTable(
+  "sole_models",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    code: text("code").notNull(),
+    name: text("name").notNull(),
+    // Zmena zmesi pri živých príkazoch blokovaná DB triggerom (custom migrácia).
+    mixtureId: uuid("mixture_id")
+      .notNull()
+      .references(() => mixtures.id),
+    mixtureKgPerPair: numeric("mixture_kg_per_pair", {
+      precision: 12,
+      scale: 3,
+    }).notNull(),
+    targetCycleSeconds: integer("target_cycle_seconds"),
+    salePriceCents: integer("sale_price_cents"),
+    isActive: boolean("is_active").notNull().default(true),
+    ...audit(),
+  },
+  (t) => [
+    uniqueIndex("sole_models_code_uq")
+      .on(t.code)
+      .where(sql`deleted_at IS NULL`),
+    check("sole_models_kg_per_pair_positive", sql`mixture_kg_per_pair > 0`),
+    check(
+      "sole_models_cycle_positive",
+      sql`target_cycle_seconds IS NULL OR target_cycle_seconds > 0`,
+    ),
+    check(
+      "sole_models_price_positive",
+      sql`sale_price_cents IS NULL OR sale_price_cents > 0`,
+    ),
+  ],
+);
+
+// order_number generuje systém: PR-RRRR-NNNN (poradové číslo per rok, app logika).
+// Stavový automat (DB trigger guard v custom migrácii): nova → vo_vyrobe |
+// zrusena; vo_vyrobe → dokoncena; dokoncena → vo_vyrobe (reopen na opravy).
+// prep_branch = výber vetvy prípravy zmesi (SPEC M6 krok 2: Barwell / sekanie).
+// DECISION-PENDING: kroky zapravovanie/kontrola/balenie sa neevidujú ako
+// samostatné záznamy — lisovanie pokrývajú press_runs, orez scrap_records,
+// výstupná kontrola je zahrnutá v sémantike pairs_produced (= dobré páry).
+export const workOrders = pgTable(
+  "work_orders",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orderNumber: text("order_number").notNull(),
+    // Zmena artiklu pri živých výkonoch/expedícii blokovaná DB triggerom.
+    soleModelId: uuid("sole_model_id")
+      .notNull()
+      .references(() => soleModels.id),
+    qtyPairsPlanned: integer("qty_pairs_planned").notNull(),
+    // text + CHECK namiesto enumu — hodnoty sa menia obyčajnou migráciou.
+    status: text("status").notNull().default("nova"),
+    prepBranch: text("prep_branch"),
+    note: text("note"),
+    ...audit(),
+  },
+  (t) => [
+    uniqueIndex("work_orders_number_uq")
+      .on(t.orderNumber)
+      .where(sql`deleted_at IS NULL`),
+    check("work_orders_qty_positive", sql`qty_pairs_planned > 0`),
+    check(
+      "work_orders_status_allowed",
+      sql`status IN ('nova', 'vo_vyrobe', 'dokoncena', 'zrusena')`,
+    ),
+    check(
+      "work_orders_prep_branch_allowed",
+      sql`prep_branch IS NULL OR prep_branch IN ('barwell', 'sekanie')`,
+    ),
+    index("work_orders_status_idx").on(t.status),
+    index("work_orders_sole_model_idx").on(t.soleModelId),
+  ],
+);
+
+// Práca lisovne (lisovanie, orez, zapravenie, balenie) per príkaz — vstup
+// nákladu na pár (SPEC M7). Zrkadlo batch_labor.
+export const workOrderLabor = pgTable(
+  "work_order_labor",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workOrderId: uuid("work_order_id")
+      .notNull()
+      .references(() => workOrders.id),
+    workerId: uuid("worker_id")
+      .notNull()
+      .references(() => workers.id),
+    workDate: date("work_date").notNull(),
+    hours: numeric("hours", { precision: 6, scale: 2 }).notNull(),
+    // Snapshot z labor_rates k work_date — zmena sadzby neprepíše históriu.
+    hourlyRateCents: integer("hourly_rate_cents").notNull(),
+    note: text("note"),
+    ...audit(),
+  },
+  (t) => [
+    check("work_order_labor_hours_positive", sql`hours > 0`),
+    check("work_order_labor_rate_positive", sql`hourly_rate_cents > 0`),
+    index("work_order_labor_order_idx").on(t.workOrderId),
+  ],
+);
+
+// Výkon per lis a zmena (LIS1–LIS9 + STREKOLIS). TVRDÁ VÄZBA na schválenú
+// zmes (SPEC §12): batch_id smie odkazovať len dávku v stave 'schvalena' —
+// vynucuje DB trigger (custom migrácia) + app vrstva; trigger stráži aj zhodu
+// zmesi s artiklom, rozpočet Σ mixture_kg ≤ output_kg a immutabilitu väzieb.
+// pairs_produced = DOBRÉ páry po výstupnej kontrole; nepodarky zvlášť
+// (press_run_defects). cycles_count = alokačný kľúč réžií lisovne (D2).
+export const pressRuns = pgTable(
+  "press_runs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workOrderId: uuid("work_order_id")
+      .notNull()
+      .references(() => workOrders.id),
+    machineId: uuid("machine_id")
+      .notNull()
+      .references(() => machines.id),
+    batchId: uuid("batch_id")
+      .notNull()
+      .references(() => productionBatches.id),
+    runDate: date("run_date").notNull(),
+    // text + CHECK namiesto enumu — hodnoty sa menia obyčajnou migráciou.
+    shift: text("shift").notNull(),
+    cyclesCount: integer("cycles_count").notNull(),
+    pairsProduced: integer("pairs_produced").notNull(),
+    mixtureKg: numeric("mixture_kg", { precision: 12, scale: 3 }).notNull(),
+    workerId: uuid("worker_id")
+      .notNull()
+      .references(() => workers.id),
+    note: text("note"),
+    ...audit(),
+  },
+  (t) => [
+    check(
+      "press_runs_shift_allowed",
+      sql`shift IN ('ranna', 'poobedna', 'nocna')`,
+    ),
+    check("press_runs_cycles_positive", sql`cycles_count > 0`),
+    check("press_runs_pairs_nonnegative", sql`pairs_produced >= 0`),
+    check("press_runs_kg_positive", sql`mixture_kg > 0`),
+    index("press_runs_order_idx").on(t.workOrderId),
+    index("press_runs_batch_idx").on(t.batchId),
+  ],
+);
+
+// Nepodarky per výkon s dôvodom z číselníka (SPEC M6).
+export const pressRunDefects = pgTable(
+  "press_run_defects",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    pressRunId: uuid("press_run_id")
+      .notNull()
+      .references(() => pressRuns.id),
+    defectReasonId: uuid("defect_reason_id")
+      .notNull()
+      .references(() => defectReasons.id),
+    qtyPairs: integer("qty_pairs").notNull(),
+    ...audit(),
+  },
+  (t) => [
+    check("press_run_defects_qty_positive", sql`qty_pairs > 0`),
+    // Dôvod max raz per výkon — množstvo sa edituje, neduplikuje.
+    uniqueIndex("press_run_defects_run_reason_uq")
+      .on(t.pressRunId, t.defectReasonId)
+      .where(sql`deleted_at IS NULL`),
+  ],
+);
+
+// Prestoje per výkon (SPEC M6) — existujúci číselník downtime_reasons.
+export const pressRunDowntimes = pgTable(
+  "press_run_downtimes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    pressRunId: uuid("press_run_id")
+      .notNull()
+      .references(() => pressRuns.id),
+    reasonId: uuid("reason_id")
+      .notNull()
+      .references(() => downtimeReasons.id),
+    minutes: integer("minutes").notNull(),
+    note: text("note"),
+    ...audit(),
+  },
+  (t) => [
+    check("press_run_downtimes_minutes_positive", sql`minutes > 0`),
+    index("press_run_downtimes_run_idx").on(t.pressRunId),
+  ],
+);
+
+// Pretoky / orez per príkaz (D5: likvidácia = 100 % strata; kg = KPI
+// odpadovosti pre M8 dashboard).
+export const scrapRecords = pgTable(
+  "scrap_records",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workOrderId: uuid("work_order_id")
+      .notNull()
+      .references(() => workOrders.id),
+    qtyKg: numeric("qty_kg", { precision: 12, scale: 3 }).notNull(),
+    recordDate: date("record_date").notNull(),
+    note: text("note"),
+    ...audit(),
+  },
+  (t) => [
+    check("scrap_records_kg_positive", sql`qty_kg > 0`),
+    index("scrap_records_order_idx").on(t.workOrderId),
+  ],
+);
+
+// Expedícia: dodací list (DL-RRRR-NNNN, app logika). Odberateľ ako text
+// s UI prefillom „LOWA" — customers tabuľka nie je v SPEC §6.
+export const shipments = pgTable(
+  "shipments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    shipmentNumber: text("shipment_number").notNull(),
+    shipDate: date("ship_date").notNull(),
+    customer: text("customer").notNull(),
+    note: text("note"),
+    ...audit(),
+  },
+  (t) => [
+    uniqueIndex("shipments_number_uq")
+      .on(t.shipmentNumber)
+      .where(sql`deleted_at IS NULL`),
+  ],
+);
+
+// Položka DL viazaná na výrobný príkaz → traceabilita dodávka → príkaz →
+// dávky (press_runs) → šarže surovín. Σ expedovaných párov per príkaz ≤
+// Σ pairs_produced stráži DB trigger (sklad hotových nejde do mínusu).
+export const shipmentItems = pgTable(
+  "shipment_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    shipmentId: uuid("shipment_id")
+      .notNull()
+      .references(() => shipments.id),
+    workOrderId: uuid("work_order_id")
+      .notNull()
+      .references(() => workOrders.id),
+    qtyPairs: integer("qty_pairs").notNull(),
+    ...audit(),
+  },
+  (t) => [
+    check("shipment_items_qty_positive", sql`qty_pairs > 0`),
+    uniqueIndex("shipment_items_shipment_order_uq")
+      .on(t.shipmentId, t.workOrderId)
+      .where(sql`deleted_at IS NULL`),
+    index("shipment_items_order_idx").on(t.workOrderId),
+  ],
+);
+
 // ──────────────────────────────────────────────────────────── audit ──
 
 // Append-only; píše app vrstva (server actions) pri mutáciách.

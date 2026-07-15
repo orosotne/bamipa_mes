@@ -22,6 +22,20 @@
       "when": 1784110908360,
       "tag": "0002_salty_hex",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1784138994025,
+      "tag": "0003_young_maximus",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1784139010168,
+      "tag": "0004_m6_rls_guards",
+      "breakpoints": true
     }
   ]
 }

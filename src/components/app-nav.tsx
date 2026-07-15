@@ -3,6 +3,7 @@
 import {
   FileText,
   FlaskConical,
+  Footprints,
   Layers,
   Package,
   Settings2,
@@ -28,6 +29,7 @@ const SEKCIE: {
   { href: "/receptury", label: "Receptúry", icon: Layers, modul: "receptury" },
   { href: "/vyroba", label: "Výroba", icon: Package, modul: "vyroba" },
   { href: "/labak", label: "Labák", icon: FlaskConical, modul: "labak" },
+  { href: "/lisovna", label: "Lisovňa", icon: Footprints, modul: "lisovna" },
   { href: "/ciselniky", label: "Číselníky", icon: Settings2, modul: "ciselniky" },
   { href: "/pouzivatelia", label: "Používatelia", icon: Users, modul: "pouzivatelia" },
 ];

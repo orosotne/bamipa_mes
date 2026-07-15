@@ -54,6 +54,18 @@ export const VERDIKTY = {
   zamietnute: "Zamietnuté",
 } as const;
 
+export const STAVY_PRIKAZOV = {
+  nova: "Nový",
+  vo_vyrobe: "Vo výrobe",
+  dokoncena: "Dokončený",
+  zrusena: "Zrušený",
+} as const;
+
+export const VETVY_PRIPRAVY = {
+  barwell: "Barwell",
+  sekanie: "Sekanie",
+} as const;
+
 export const ROLY = {
   admin: "Administrátor / konateľ",
   ekonom: "Ekonóm / back-office",
@@ -69,4 +81,6 @@ export type MernaJednotka = keyof typeof MERNE_JEDNOTKY;
 export type StavDavky = keyof typeof STAVY_DAVOK;
 export type Zmena = keyof typeof ZMENY;
 export type Verdikt = keyof typeof VERDIKTY;
+export type StavPrikazu = keyof typeof STAVY_PRIKAZOV;
+export type VetvaPripravy = keyof typeof VETVY_PRIPRAVY;
 export type UserRole = keyof typeof ROLY;

@@ -40,7 +40,7 @@ seedZakladneCiselniky(db, {
 })
   .then(() => {
     console.log(
-      "Seed hotový: 1 admin, 4 strediská, 4 dôvody prestojov, 7 QC parametrov.",
+      "Seed hotový: 1 admin, 4 strediská, 4 dôvody prestojov, 7 QC parametrov, 10 strojov lisovne, 5 dôvodov nepodarkov.",
     );
   })
   .catch((err) => {

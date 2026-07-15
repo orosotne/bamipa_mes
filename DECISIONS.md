@@ -2,10 +2,15 @@
 
 > Záväzné odpovede na blokujúce otázky zo SPEC.md, sekcia 11. Claude Code: toto je zdroj pravdy — pri konflikte so všeobecnými defaultami platí tento súbor. Položky PENDING nesmú blokovať Krok 1–2; implementuj s uvedeným defaultom a označ miesta v kóde komentárom `// DECISION-PENDING`.
 
-## D1 — Ocenenie skladu · ⏳ PENDING (účtovníčka)
-- **Akcia:** zistiť, akou metódou sú oceňované zásoby v MRP sklade (FIFO vs. vážený aritmetický priemer). Náš systém MUSÍ použiť rovnakú metódu.
-- **Default do potvrdenia:** vážený aritmetický priemer.
-- Dopad: cena výdajok (M2), všetky kalkulácie (M7).
+## D1 — Ocenenie skladu: FIFO · ✅ ROZHODNUTÉ (zhodné s MRP)
+- Výdajky čerpajú zo šarží (lotov) v poradí príjmu — najstaršia
+  prvá, za jej skutočnú nákupnú cenu.
+- Jedna navážka môže čerpať z viacerých šarží → riadky spotreby
+  viazané na lot_id, každý s vlastnou cenou.
+- Každá šarža drží zostatok (qty_remaining); výdaj pod nulu zakázaný.
+- Procesné pravidlo: príjemka sa zadáva PRED navážkou — inak
+  systém nemá z čoho vydávať.
+- Inventúrne korekcie sa odpisujú tiež vo FIFO poradí.
 
 ## D2 — Alokačné kľúče réžií · ✅ ROZHODNUTÉ (revízia po 3 mesiacoch reálnych dát)
 - Valcovňa: réžie strediska / kg vyrobenej zmesi za mesiac.

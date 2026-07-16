@@ -331,6 +331,32 @@ export function bucketujCashflow<T extends CashflowPolozka>(
   return { poSplatnosti, tyzdne, neskor };
 }
 
+export type KumulativneSplatne = { dni: number; sumaCents: number; pocet: number };
+
+/**
+ * Kumulatívne súčty splatné do 7/14/30 dní od `dnes` (SPEC M8, vrátane
+ * hraníc — zhodné s M1 filtrom `splatne_do`). Po splatnosti sem nepatrí,
+ * má vlastný alert. Čistá funkcia nad výstupom zoznamFaktur.
+ */
+export function kumulativneSplatne(
+  faktury: CashflowPolozka[],
+  dnes: string,
+  horizonty: number[] = [7, 14, 30],
+): KumulativneSplatne[] {
+  const otvorene = faktury.filter((f) => f.zostatokCents > 0);
+  return horizonty.map((dni) => {
+    const vOkne = otvorene.filter((f) => {
+      const d = rozdielDni(dnes, f.dueDate);
+      return d >= 0 && d <= dni;
+    });
+    return {
+      dni,
+      sumaCents: vOkne.reduce((s, f) => s + f.zostatokCents, 0),
+      pocet: vOkne.length,
+    };
+  });
+}
+
 // ── Trendy cien surovín (Q4) ──────────────────────────────────────────────
 
 export type TopMaterial = {

@@ -12,7 +12,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatCentsToEur, formatDatum } from "@/lib/format";
-import type { CashflowBuckety } from "@/server/dashboard/queries";
+import type {
+  CashflowBuckety,
+  KumulativneSplatne,
+} from "@/server/dashboard/queries";
 import type { RiadokZoznamuFaktur } from "@/server/invoices/service";
 
 const MAX_RIADKOV = 8;
@@ -89,8 +92,11 @@ export function PoSplatnostiAlert({
 
 export function CashflowKalendar({
   buckety,
+  kumulativne,
 }: {
   buckety: CashflowBuckety<RiadokZoznamuFaktur>;
+  /** SPEC M8: kumulatívne „splatné do 7/14/30 dní" — čísla zhodné s M1 filtrami. */
+  kumulativne: KumulativneSplatne[];
 }) {
   const dlazdice = [
     ...buckety.tyzdne.map((t, i) => ({
@@ -112,7 +118,26 @@ export function CashflowKalendar({
       <CardHeader>
         <CardTitle>Cash-flow kalendár — splatnosti dopredu</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-3 gap-3">
+          {kumulativne.map((k) => (
+            <Link
+              key={k.dni}
+              href={`/faktury?filter=${k.dni}`}
+              className="rounded-lg border bg-muted/40 p-3 transition-colors hover:bg-muted"
+            >
+              <div className="text-sm text-muted-foreground">
+                Splatné do {k.dni} dní
+              </div>
+              <div className="mt-1 text-lg font-semibold tabular-nums">
+                {formatCentsToEur(k.sumaCents)}
+              </div>
+              <div className="mt-0.5 text-xs text-muted-foreground">
+                {k.pocet === 1 ? "1 faktúra" : `${k.pocet} faktúr`}
+              </div>
+            </Link>
+          ))}
+        </div>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
           {dlazdice.map((d) => (
             <Link

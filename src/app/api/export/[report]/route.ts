@@ -127,8 +127,11 @@ export async function GET(
   request: Request,
   ctx: { params: Promise<{ report: string }> },
 ) {
+  // getCurrentUser NECHÁVAME mimo try — jeho redirect(/login, /odhlasit)
+  // hádže NEXT_REDIRECT a musí propagovať (holý catch by deaktivovanému
+  // používateľovi vrátil 403 namiesto invalidácie session cez /odhlasit).
+  const user = await getCurrentUser(db);
   try {
-    const user = await getCurrentUser(db);
     overRolu(user.role, "ekonom");
   } catch {
     return new NextResponse("Nedostatočné oprávnenie.", { status: 403 });

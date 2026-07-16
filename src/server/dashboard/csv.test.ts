@@ -23,6 +23,29 @@ describe("csvSubor", () => {
     const csv = csvSubor(["a", "b", "c"], [[null, undefined, 42]]);
     expect(csv.slice(1)).toBe("a;b;c\r\n;;42\r\n");
   });
+
+  // CSV formula injection (CWE-1236): Excel vyhodnotí bunku začínajúcu na
+  // =, +, -, @ alebo TAB ako vzorec/DDE — texty z voľných polí (číslo
+  // faktúry, názvy) treba neutralizovať apostrofom. Quoting NESTAČÍ.
+  test("bunky začínajúce =, +, @, TAB sa neutralizujú apostrofom", () => {
+    const csv = csvSubor(
+      ["a"],
+      [["=HYPERLINK(\"http://x\";\"y\")"], ["+1+1"], ["@SUM(A1)"], ["\tcmd"]],
+    );
+    expect(csv.slice(1)).toBe(
+      "a\r\n\"'=HYPERLINK(\"\"http://x\"\";\"\"y\"\")\"\r\n'+1+1\r\n'@SUM(A1)\r\n\"'\tcmd\"\r\n",
+    );
+  });
+
+  test("záporné a kladné ČÍSLA (výstup eurCsv/ciarka) sa nemenia", () => {
+    const csv = csvSubor(["a"], [["-9,70"], ["-42"], ["+5,00"], ["-0,4643"]]);
+    expect(csv.slice(1)).toBe("a\r\n-9,70\r\n-42\r\n+5,00\r\n-0,4643\r\n");
+  });
+
+  test("záporný TEXT (nie číslo) sa neutralizuje", () => {
+    const csv = csvSubor(["a"], [["-2+3+cmd"], ["=1+1"]]);
+    expect(csv.slice(1)).toBe("a\r\n'-2+3+cmd\r\n'=1+1\r\n");
+  });
 });
 
 describe("eurCsv", () => {

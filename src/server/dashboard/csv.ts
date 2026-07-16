@@ -8,10 +8,18 @@
 // chýbajúci BOM = Excel sk-SK zobrazí diakritiku rozbite).
 const BOM = String.fromCharCode(0xfeff);
 
+// CSV formula injection (CWE-1236): bunku začínajúcu =, +, -, @ alebo TAB
+// Excel vyhodnotí ako vzorec/DDE (quoting to NEzastaví) — neutralizujeme
+// apostrofom. Výnimka: čisté čísla s desatinnou čiarkou (výstup eurCsv/
+// ciarka), ktorým by apostrof rozbil súčty v Exceli.
+const RIZIKOVY_ZACIATOK = /^[=+\-@\t]/;
+const CISTE_CISLO = /^[+-]?\d+(?:,\d+)?$/;
+
 function bunka(v: string | number | null | undefined): string {
   if (v === null || v === undefined) return "";
-  const s = String(v);
-  return /[;"\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  let s = String(v);
+  if (RIZIKOVY_ZACIATOK.test(s) && !CISTE_CISLO.test(s)) s = `'${s}`;
+  return /[;"\n\r\t]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
 export function csvSubor(

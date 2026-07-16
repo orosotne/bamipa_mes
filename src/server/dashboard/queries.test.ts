@@ -36,6 +36,7 @@ import {
 import { createTestDb, seedZaklad, type TestDb } from "@/test/pglite";
 import {
   bucketujCashflow,
+  kumulativneSplatne,
   nakladNaKgMesacne,
   nakladNaParMesacne,
   nepodarky,
@@ -352,6 +353,29 @@ describe("bucketujCashflow (čistá funkcia)", () => {
     );
     expect(buckety.poSplatnosti.pocet).toBe(0);
     expect(buckety.tyzdne[0].pocet).toBe(0);
+  });
+
+  // SPEC M8: „splatné faktúry 7/14/30 dní" — kumulatívne súčty zhodné s M1
+  // filtrom splatne_do (dnes ≤ splatnosť ≤ dnes+N vrátane hraníc).
+  test("kumulatívne súčty do 7/14/30 dní vrátane hraníc", () => {
+    const kumulativne = kumulativneSplatne(
+      [
+        f("2026-07-10", 100), // po splatnosti → nikde
+        f("2026-07-16", 1000), // dnes → 7, 14, 30
+        f("2026-07-23", 2000), // dnes+7 (hranica) → 7, 14, 30
+        f("2026-07-24", 4000), // dnes+8 → 14, 30
+        f("2026-08-14", 8000), // dnes+29 → len 30 (nález review: padal do „Neskôr")
+        f("2026-08-15", 16000), // dnes+30 (hranica) → len 30
+        f("2026-08-16", 32000), // dnes+31 → nikde
+        f("2026-07-20", 0), // zaplatená → nikde
+      ],
+      "2026-07-16",
+    );
+    expect(kumulativne).toEqual([
+      { dni: 7, sumaCents: 3000, pocet: 2 },
+      { dni: 14, sumaCents: 7000, pocet: 3 },
+      { dni: 30, sumaCents: 31000, pocet: 5 },
+    ]);
   });
 });
 

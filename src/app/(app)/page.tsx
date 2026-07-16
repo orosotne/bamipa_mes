@@ -7,6 +7,7 @@ import { formatDatum } from "@/lib/format";
 import { marzeArtiklov } from "@/server/calc/margins";
 import {
   bucketujCashflow,
+  kumulativneSplatne,
   nakladNaKgMesacne,
   nakladNaParMesacne,
   nepodarky,
@@ -111,6 +112,7 @@ export default async function PrehladPage({
           ]);
         return {
           buckety: bucketujCashflow(faktury, dnes),
+          kumulativne: kumulativneSplatne(faktury, dnes),
           marze,
           nakladyKg,
           nakladyPar,
@@ -153,7 +155,12 @@ export default async function PrehladPage({
 
       <KpiDlazdice kpi={kpi} predosle={kpiPredosle} />
 
-      {financie && <CashflowKalendar buckety={financie.buckety} />}
+      {financie && (
+        <CashflowKalendar
+          buckety={financie.buckety}
+          kumulativne={financie.kumulativne}
+        />
+      )}
 
       {financie && (
         <div className="grid gap-6 lg:grid-cols-2">

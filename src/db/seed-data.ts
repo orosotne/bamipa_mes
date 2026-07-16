@@ -3,6 +3,7 @@
 import { and, eq, isNull } from "drizzle-orm";
 import type { DbClient } from "./index";
 import {
+  calcSettings,
   costCenters,
   defectReasons,
   downtimeReasons,
@@ -108,4 +109,15 @@ export async function seedZakladneCiselniky(
       .values({ ...dovod, createdBy: admin.id })
       .onConflictDoNothing();
   }
+
+  // 7) Alokačné nastavenia M7 (D4: pomer inštalovaného príkonu 60/40).
+  await db
+    .insert(calcSettings)
+    .values({
+      code: "default",
+      energyValcovnaPct: 60,
+      energyLisovnaPct: 40,
+      createdBy: admin.id,
+    })
+    .onConflictDoNothing();
 }

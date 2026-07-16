@@ -14,7 +14,7 @@ describe("smieVidiet", () => {
     // rola, POVOLENÉ moduly, ZAKÁZANÉ moduly
     [
       "ekonom",
-      ["faktury", "dodavatelia", "sklad"],
+      ["faktury", "dodavatelia", "sklad", "kalkulacie"],
       ["vyroba", "labak", "ciselniky", "pouzivatelia"],
     ],
     [
@@ -35,7 +35,7 @@ describe("smieVidiet", () => {
     [
       "majster_lisovne",
       [],
-      ["faktury", "vyroba", "labak", "sklad", "ciselniky", "pouzivatelia"],
+      ["faktury", "vyroba", "labak", "sklad", "kalkulacie", "ciselniky", "pouzivatelia"],
     ],
   ];
 
@@ -56,6 +56,8 @@ describe("smieVidietRoute", () => {
     expect(smieVidietRoute("laborant", "/vyroba/xyz")).toBe(false);
     expect(smieVidietRoute("ekonom", "/faktury/nova")).toBe(true);
     expect(smieVidietRoute("majster_valcovne", "/vyroba")).toBe(true);
+    expect(smieVidietRoute("ekonom", "/kalkulacie/2026-06")).toBe(true);
+    expect(smieVidietRoute("majster_lisovne", "/kalkulacie")).toBe(false);
   });
 
   test("domovská stránka „/“ je prístupná každej role", () => {

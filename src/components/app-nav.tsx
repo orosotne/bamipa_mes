@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Calculator,
   FileText,
   FlaskConical,
   Footprints,
@@ -30,6 +31,7 @@ const SEKCIE: {
   { href: "/vyroba", label: "Výroba", icon: Package, modul: "vyroba" },
   { href: "/labak", label: "Labák", icon: FlaskConical, modul: "labak" },
   { href: "/lisovna", label: "Lisovňa", icon: Footprints, modul: "lisovna" },
+  { href: "/kalkulacie", label: "Kalkulácie", icon: Calculator, modul: "kalkulacie" },
   { href: "/ciselniky", label: "Číselníky", icon: Settings2, modul: "ciselniky" },
   { href: "/pouzivatelia", label: "Používatelia", icon: Users, modul: "pouzivatelia" },
 ];

@@ -23,7 +23,7 @@ import {
   softDeleteMaterial,
   updateMaterial,
 } from "@/server/materials/service";
-import { vyzadajRolu } from "@/server/session";
+import { dnesnyDatum, vyzadajRolu } from "@/server/session";
 import { generujCisloPrijemky } from "@/server/warehouse/numbering";
 
 const materialSchema = z.object({
@@ -154,6 +154,7 @@ export async function cenovaKorekciaAction(
       lotId: data.lotId,
       novaCena: parseEurPerUnitToPrice(data.novaCenaEur),
       note: data.note || undefined,
+      dnes: dnesnyDatum(),
     });
 
     revalidatePath(`/sklad/${data.materialId}`);

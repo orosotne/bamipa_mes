@@ -1100,6 +1100,123 @@ export const shipmentItems = pgTable(
   ],
 );
 
+// ───────────────────────────── M7 — kalkulácie a uzávierky ──
+
+// Uzamknutie mesiaca (SPEC M7, workflow 5). Živý riadok = uzavretý mesiac;
+// reopen = soft delete (len admin a len posledná živá uzávierka — app guard
+// v close.ts). Doklady uzavretého mesiaca zamyká assert_period_open (0007).
+export const periodCloses = pgTable(
+  "period_closes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    // Vždy 1. deň mesiaca (CHECK) — kanonická identifikácia obdobia.
+    period: date("period").notNull(),
+    note: text("note"),
+    ...audit(),
+  },
+  (t) => [
+    uniqueIndex("period_closes_period_uq")
+      .on(t.period)
+      .where(sql`deleted_at IS NULL`),
+    check(
+      "period_closes_first_of_month",
+      sql`period = date_trunc('month', period)::date`,
+    ),
+  ],
+);
+
+// Archív alokácií réžií per uzávierka × stredisko (SPEC §6). pool_cents =
+// réžie strediska za mesiac (faktúry réžia+služby, energia podľa D4 60/40,
+// cost_corrections). basis/rate podľa D2 kľúča strediska:
+//   valcovňa: kg vyrobenej zmesi → sadzba c/kg,
+//   lisovňa:  lisovacie cykly    → sadzba c/cyklus,
+//   labák:    priame náklady dávok (centy) → prirážka v %,
+//   správa:   výrobné náklady mesiaca (centy) → prirážka v %.
+// Sadzba na 6 des. miest (half-up); alokácia na doklad = round(základ ×
+// sadzba) RAZ — ručne prepočítateľné (SPEC §12). Riadky sa nemažú; reopen
+// soft-deletne uzávierku a archív ostáva na nej.
+export const overheadAllocations = pgTable(
+  "overhead_allocations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    periodCloseId: uuid("period_close_id")
+      .notNull()
+      .references(() => periodCloses.id),
+    costCenterId: uuid("cost_center_id")
+      .notNull()
+      .references(() => costCenters.id),
+    // Záporný pool = dobropisy prevýšili réžie (povolené, sadzba záporná).
+    poolCents: integer("pool_cents").notNull(),
+    basis: numeric("basis", { precision: 16, scale: 3 }).notNull(),
+    rate: numeric("rate", { precision: 18, scale: 6 }).notNull(),
+    ...audit(),
+  },
+  (t) => [
+    uniqueIndex("overhead_allocations_close_center_uq").on(
+      t.periodCloseId,
+      t.costCenterId,
+    ),
+    check("overhead_allocations_basis_nonnegative", sql`basis >= 0`),
+  ],
+);
+
+// Alokačné nastavenia (SPEC §4: alokačné kľúče spravuje admin). Jediný živý
+// riadok code='default'. D4: fixný pomer inštalovaného príkonu valcovňa/
+// lisovňa na delenie mesačnej faktúry za energie (schválené 60/40).
+export const calcSettings = pgTable(
+  "calc_settings",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    code: text("code").notNull().default("default"),
+    energyValcovnaPct: integer("energy_valcovna_pct").notNull(),
+    energyLisovnaPct: integer("energy_lisovna_pct").notNull(),
+    ...audit(),
+  },
+  (t) => [
+    uniqueIndex("calc_settings_code_uq")
+      .on(t.code)
+      .where(sql`deleted_at IS NULL`),
+    check(
+      "calc_settings_pct_range",
+      sql`energy_valcovna_pct BETWEEN 0 AND 100 AND energy_lisovna_pct BETWEEN 0 AND 100`,
+    ),
+    check(
+      "calc_settings_pct_sum",
+      sql`energy_valcovna_pct + energy_lisovna_pct = 100`,
+    ),
+  ],
+);
+
+// Dopad cenových korekcií dokladov do UZAVRETÝCH období (corrections.ts):
+// snapshoty pohybov uzavretého mesiaca sa neprepisujú — cenový rozdiel sa
+// zaúčtuje sem, do réžií strediska v period_date (aktuálny otvorený mesiac),
+// a vstúpi do poolu pri jeho uzávierke. Oprava omylu = protizáznam, nie edit.
+export const costCorrections = pgTable(
+  "cost_corrections",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    lotId: uuid("lot_id")
+      .notNull()
+      .references(() => materialLots.id),
+    costCenterId: uuid("cost_center_id")
+      .notNull()
+      .references(() => costCenters.id),
+    // Vždy 1. deň mesiaca (CHECK); otvorenosť mesiaca stráži trigger (0007).
+    periodDate: date("period_date").notNull(),
+    amountCents: integer("amount_cents").notNull(),
+    note: text("note"),
+    ...audit(),
+  },
+  (t) => [
+    check("cost_corrections_amount_nonzero", sql`amount_cents <> 0`),
+    check(
+      "cost_corrections_first_of_month",
+      sql`period_date = date_trunc('month', period_date)::date`,
+    ),
+    index("cost_corrections_period_idx").on(t.periodDate),
+  ],
+);
+
 // ──────────────────────────────────────────────────────────── audit ──
 
 // Append-only; píše app vrstva (server actions) pri mutáciách.

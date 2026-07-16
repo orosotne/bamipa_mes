@@ -183,16 +183,51 @@ export default async function DavkaDetailPage({
               </div>
             )}
             <div className="mt-1 flex justify-between border-t pt-1.5 font-semibold">
-              <span>Spolu</span>
+              <span>Spolu priame</span>
               <span className="tabular-nums">{formatCentsToEur(detail.naklady.totalCents)}</span>
             </div>
             {detail.naklady.costPerKgCents !== null && (
               <div className="flex justify-between text-muted-foreground">
-                <span>Náklad na 1 kg</span>
+                <span>Priamy náklad na 1 kg</span>
                 <span className="tabular-nums">
                   {formatCentsToEur(Math.round(detail.naklady.costPerKgCents))}/kg
                 </span>
               </div>
+            )}
+            {detail.naklady.fullTotalCents !== null ? (
+              <>
+                <div className="mt-2 flex justify-between border-t pt-1.5">
+                  <span className="text-muted-foreground">Réžia valcovne (uzávierka)</span>
+                  <span className="tabular-nums">
+                    {formatCentsToEur(detail.naklady.valcovnaOverheadCents ?? 0)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Labák (prirážka)</span>
+                  <span className="tabular-nums">
+                    {formatCentsToEur(detail.naklady.labakOverheadCents ?? 0)}
+                  </span>
+                </div>
+                <div className="mt-1 flex justify-between border-t pt-1.5 font-semibold">
+                  <span>Plný náklad</span>
+                  <span className="tabular-nums">
+                    {formatCentsToEur(detail.naklady.fullTotalCents)}
+                  </span>
+                </div>
+                {detail.naklady.fullCostPerKgCents !== null && (
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Plný náklad na 1 kg</span>
+                    <span className="tabular-nums">
+                      {formatCentsToEur(Math.round(detail.naklady.fullCostPerKgCents))}/kg
+                    </span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <p className="mt-2 border-t pt-1.5 text-xs text-muted-foreground">
+                Réžie a plný náklad sa doplnia po mesačnej uzávierke
+                (Kalkulácie).
+              </p>
             )}
           </CardContent>
         </Card>

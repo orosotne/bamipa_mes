@@ -303,6 +303,7 @@ describe("cenovaKorekcia (oprava dokladu — schválená politika ex-OQ3)", () =
       lotId,
       novaCena: "38.5000",
       note: "Dobropis FA-2026-001",
+      dnes: "2026-07-16",
     });
 
     // Lot má novú cenu.
@@ -343,6 +344,7 @@ describe("cenovaKorekcia (oprava dokladu — schválená politika ex-OQ3)", () =
         userId: zaklad.adminId,
         lotId,
         novaCena: "40.0000",
+        dnes: "2026-07-16",
       }),
     ).rejects.toThrow();
   });

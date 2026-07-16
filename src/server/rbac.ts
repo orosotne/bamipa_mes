@@ -11,6 +11,7 @@ export const MODULY = [
   "vyroba",
   "labak",
   "lisovna",
+  "kalkulacie",
   "ciselniky",
   "pouzivatelia",
 ] as const;
@@ -32,6 +33,9 @@ const POVOLENIA: Record<Modul, UserRole[]> = {
   // SPEC §4: príkazy, výkony, nepodarky, expedícia. Artikel mutácie sú v
   // actions zúžené na admina (predajná cena) — majster artikle len číta.
   lisovna: ["majster_lisovne"],
+  // M7: uzávierky, náklady, marže — citlivé čísla len ekonóm (+ admin);
+  // majstri kalkulácie nevidia (predajné ceny, marže).
+  kalkulacie: ["ekonom"],
   ciselniky: [], // len admin
   pouzivatelia: [], // len admin
 };
@@ -46,6 +50,7 @@ const ROUTA_MODUL: { prefix: string; modul: Modul }[] = [
   { prefix: "/vyroba", modul: "vyroba" },
   { prefix: "/labak", modul: "labak" },
   { prefix: "/lisovna", modul: "lisovna" },
+  { prefix: "/kalkulacie", modul: "kalkulacie" },
   { prefix: "/ciselniky", modul: "ciselniky" },
   { prefix: "/pouzivatelia", modul: "pouzivatelia" },
 ];

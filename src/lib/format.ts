@@ -85,6 +85,30 @@ export function zobrazQty(qty: string): string {
   return qty.replace(/\.?0+$/, "").replace(".", ",") || "0";
 }
 
+const MESIACE = [
+  "január",
+  "február",
+  "marec",
+  "apríl",
+  "máj",
+  "jún",
+  "júl",
+  "august",
+  "september",
+  "október",
+  "november",
+  "december",
+] as const;
+
+/** "2026-06-01" (period) → "jún 2026" (M7 uzávierky). */
+export function formatMesiac(period: string): string {
+  const m = /^(\d{4})-(\d{2})/.exec(period);
+  if (!m) {
+    throw new Error(`Neplatné obdobie: „${period}" (očakávam YYYY-MM…).`);
+  }
+  return `${MESIACE[Number(m[2]) - 1]} ${m[1]}`;
+}
+
 /** "2026-07-13" (ISO/DB date string) → "13. 7. 2026" (sk-SK). */
 export function formatDatum(isoDate: string): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate);

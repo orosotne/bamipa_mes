@@ -8,7 +8,12 @@ const PRICE_DECIMALS = 4;
 /** qty(×10³) × price(×10⁴) → surové centy ×10⁷ */
 const RAW_SCALE = 10n ** BigInt(QTY_DECIMALS + PRICE_DECIMALS);
 
-function parseScaled(input: string, decimals: number, label: string): bigint {
+// Exportované aj pre alokačnú aritmetiku M7 (sadzby ×10⁶ — calc/alloc-money).
+export function parseScaled(
+  input: string,
+  decimals: number,
+  label: string,
+): bigint {
   const m = /^(-?)(\d+)(?:\.(\d+))?$/.exec(input.trim());
   if (!m) {
     throw new Error(`Neplatná hodnota ${label}: „${input}"`);
@@ -25,7 +30,7 @@ function parseScaled(input: string, decimals: number, label: string): bigint {
   return sign === "-" ? -scaled : scaled;
 }
 
-function formatScaled(value: bigint, decimals: number): string {
+export function formatScaled(value: bigint, decimals: number): string {
   const sign = value < 0n ? "-" : "";
   const abs = value < 0n ? -value : value;
   const divisor = 10n ** BigInt(decimals);

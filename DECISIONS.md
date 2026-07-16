@@ -17,6 +17,13 @@
 - Lisovňa: réžie strediska / počet lisovacích cyklov za mesiac.
 - Labák: percentuálna prirážka k priamemu nákladu dávky zmesi.
 - Správa: percentuálna prirážka k celkovým výrobným nákladom.
+- Spresnenie (schválené 2026-07-16, M7): prirážky labáku a správy sa NEZADÁVAJÚ
+  ručne — počítajú sa pri mesačnej uzávierke ako efektívna prirážka
+  (réžie strediska za mesiac / základ mesiaca), takže alokácie sedia
+  na cent s faktúrami. Réžie strediska = položky faktúr kategórií
+  réžia + služby daného strediska (+ energia podľa D4); kategória
+  investícia do réžií nevstupuje (odpisy = F3), materiál ide skladom.
+  Nákladový mesiac faktúry = delivery_date, inak issue_date, inak due_date.
 
 ## D3 — Účtovný softvér: MRP · ✅ ROZHODNUTÉ
 - F1–F2: bez integrácie. Faktúry sa evidujú v našom systéme kvôli kalkuláciám a cash-flow (duplicitne s MRP — vedomé rozhodnutie).
@@ -24,7 +31,7 @@
 
 ## D4 — Energie: len celková faktúra · ✅ ROZHODNUTÉ
 - Žiadne pole kWh na dávke — z M4 vypadáva priamy vstup energie.
-- Mesačná faktúra za elektrinu vstupuje ako réžia stredísk; rozdelenie valcovňa/lisovňa fixným pomerom podľa inštalovaného príkonu strojov — **[DOPLNIŤ pomer, napr. 60/40]**.
+- Mesačná faktúra za elektrinu vstupuje ako réžia stredísk; rozdelenie valcovňa/lisovňa fixným pomerom podľa inštalovaného príkonu strojov — **60/40** (schválené 2026-07-16; editovateľné adminom v /kalkulacie/nastavenia, tabuľka calc_settings).
 - Ak v budúcnosti pribudnú merače na strojoch, prechod na priamy vstup (F3+).
 
 ## D5 — Pretoky a orez: likvidácia · ✅ ROZHODNUTÉ

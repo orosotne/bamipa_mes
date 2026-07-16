@@ -4,13 +4,18 @@
 // - inventurnaKorekcia: manko/prebytok na konkrétnom lote ako náklad strediska.
 // - inventurnaKorekciaMaterialu: manko per MATERIÁL odpísané vo FIFO poradí (D1).
 // - cenovaKorekcia: oprava dokladovej ceny (schválená politika ex-OQ3) —
-//   v JEDNEJ transakcii prepis ceny lotu + snapshotov pohybov + audit_log diff.
-import { eq } from "drizzle-orm";
+//   v JEDNEJ transakcii prepis ceny lotu + snapshotov pohybov OTVORENÝCH
+//   mesiacov + audit_log diff. Pohyby UZAVRETÝCH mesiacov (M7 uzávierky)
+//   sa neprepisujú — cenový rozdiel sa účtuje ako cost_corrections do
+//   aktuálneho mesiaca (dávkové pohyby → valcovňa, inventúrne → stredisko
+//   pohybu; príjem nie je nákladový doklad). DB backstop: trigger
+//   stock_moves_period_lock (0007).
+import { eq, inArray, sql } from "drizzle-orm";
 import type { DbClient } from "@/db";
 import * as schema from "@/db/schema";
 import { alokujFifo } from "./fifo";
 import { nacitajFifoKandidatov } from "./lots";
-import { parseQty } from "./money";
+import { formatPrice, parsePrice, parseQty, sumLineCostsCents } from "./money";
 
 export type VysledokKorekcie = {
   pohyb: typeof schema.stockMoves.$inferSelect;
@@ -167,14 +172,29 @@ export async function inventurnaKorekciaMaterialu(
   });
 }
 
+/** "−50.000" → "50.000" a naopak (otočenie znamienka numeric stringu). */
+function otocZnamienko(qty: string): string {
+  return qty.startsWith("-") ? qty.slice(1) : `-${qty}`;
+}
+
 /**
- * Cenová korekcia dokladu (F1 — bez uzávierok): prepíše cenu lotu a snapshoty
- * VŠETKÝCH jeho pohybov + zapíše audit_log diff. Náklady dávok tak vždy sedia
- * s opraveným dokladom. (Append-only trigger povoľuje meniť len unit_price.)
+ * Cenová korekcia dokladu (schválená politika ex-OQ3): prepíše cenu lotu
+ * (budúce výdaje) a snapshoty pohybov OTVORENÝCH mesiacov — náklady
+ * otvorených dávok tak sedia s opraveným dokladom. Pohyby UZAVRETÝCH
+ * mesiacov ostávajú nedotknuté (archív kalkulácií platí); ich cenový rozdiel
+ * Σ(−qty × Δcena) sa zaúčtuje ako cost_corrections do mesiaca `dnes`
+ * (zaokrúhlenie RAZ per stredisko) a vstúpi do réžií jeho uzávierky.
  */
 export async function cenovaKorekcia(
   db: DbClient,
-  vstup: { userId: string; lotId: string; novaCena: string; note?: string },
+  vstup: {
+    userId: string;
+    lotId: string;
+    novaCena: string;
+    note?: string;
+    /** Dnešný dátum Europe/Bratislava (YYYY-MM-DD) — mesiac zaúčtovania. */
+    dnes: string;
+  },
 ): Promise<void> {
   return db.transaction(async (tx) => {
     const [lot] = await tx
@@ -189,15 +209,98 @@ export async function cenovaKorekcia(
       throw new Error("Nová cena je zhodná s aktuálnou — niet čo korigovať.");
     }
 
+    // Pohyby lotu s mesiacom dokladu: dávkové podľa production_date dávky,
+    // ostatné (príjem, inventúrne korekcie) podľa dátumu vzniku pohybu
+    // v Europe/Bratislava (zhodné s triggerom lock_stock_move_period).
+    // Mesiac je zamknutý ⇔ nie je nad hranicou poslednej živej uzávierky
+    // (vrátane nikdy neuzavretých medzier — zhodné s assert_period_open).
+    const res = await tx.execute(sql`
+      SELECT sm.id,
+             sm.qty_delta::text AS qty_delta,
+             sm.move_type::text AS move_type,
+             sm.cost_center_id,
+             date_trunc('month',
+               COALESCE(b.production_date,
+                 (sm.created_at AT TIME ZONE 'Europe/Bratislava')::date))::date
+               <= (SELECT max(pc.period) FROM period_closes pc
+                    WHERE pc.deleted_at IS NULL) AS uzavrety
+        FROM stock_moves sm
+        LEFT JOIN production_batches b ON b.id = sm.batch_id
+       WHERE sm.lot_id = ${vstup.lotId}
+    `);
+    const pohyby = (
+      Array.isArray(res) ? res : (res as { rows: unknown }).rows
+    ) as {
+      id: string;
+      qty_delta: string;
+      move_type: string;
+      cost_center_id: string | null;
+      /** NULL, keď neexistuje žiadna uzávierka (porovnanie s NULL max). */
+      uzavrety: boolean | null;
+    }[];
+
     await tx
       .update(schema.materialLots)
       .set({ unitPrice: vstup.novaCena })
       .where(eq(schema.materialLots.id, vstup.lotId));
 
-    await tx
-      .update(schema.stockMoves)
-      .set({ unitPrice: vstup.novaCena })
-      .where(eq(schema.stockMoves.lotId, vstup.lotId));
+    const otvorene = pohyby.filter((p) => !p.uzavrety).map((p) => p.id);
+    if (otvorene.length > 0) {
+      await tx
+        .update(schema.stockMoves)
+        .set({ unitPrice: vstup.novaCena })
+        .where(inArray(schema.stockMoves.id, otvorene));
+    }
+
+    // Rozdiel za uzavreté NÁKLADOVÉ pohyby (príjem vynechaný) per stredisko.
+    const deltaCena = formatPrice(
+      parsePrice(vstup.novaCena) - parsePrice(lot.unitPrice),
+    );
+    const podlaStrediska = new Map<string, { qty: string; price: string }[]>();
+    let valcovnaId: string | null = null;
+    for (const p of pohyby) {
+      if (!p.uzavrety || p.move_type === "prijem") continue;
+      let strediskoId = p.cost_center_id;
+      if (!strediskoId) {
+        if (!valcovnaId) {
+          const [valcovna] = await tx
+            .select({ id: schema.costCenters.id })
+            .from(schema.costCenters)
+            .where(
+              sql`${schema.costCenters.code} = 'valcovna' AND ${schema.costCenters.deletedAt} IS NULL`,
+            );
+          if (!valcovna) {
+            throw new Error(`Chýba nákladové stredisko „valcovna" — over číselník.`);
+          }
+          valcovnaId = valcovna.id;
+        }
+        strediskoId = valcovnaId;
+      }
+      const riadky = podlaStrediska.get(strediskoId) ?? [];
+      // Náklad pohybu je −qty × cena → rozdiel nákladu je −qty × Δcena
+      // (storno pár vydaj/korekcia sa tak prirodzene vynuluje).
+      riadky.push({ qty: otocZnamienko(p.qty_delta), price: deltaCena });
+      podlaStrediska.set(strediskoId, riadky);
+    }
+
+    const periodDate = `${vstup.dnes.slice(0, 7)}-01`;
+    const korekcie: { cost_center_id: string; amount_cents: number }[] = [];
+    for (const [strediskoId, riadky] of podlaStrediska) {
+      const amount = sumLineCostsCents(riadky);
+      if (amount === 0n) continue;
+      await tx.insert(schema.costCorrections).values({
+        lotId: vstup.lotId,
+        costCenterId: strediskoId,
+        periodDate,
+        amountCents: Number(amount),
+        note: vstup.note,
+        createdBy: vstup.userId,
+      });
+      korekcie.push({
+        cost_center_id: strediskoId,
+        amount_cents: Number(amount),
+      });
+    }
 
     await tx.insert(schema.auditLog).values({
       tableName: "material_lots",
@@ -207,6 +310,8 @@ export async function cenovaKorekcia(
       changes: {
         unit_price: { old: lot.unitPrice, new: vstup.novaCena },
         note: vstup.note ?? null,
+        uzavrete_pohyby: pohyby.filter((p) => p.uzavrety).length,
+        cost_corrections: korekcie,
       },
     });
   });

@@ -81,6 +81,11 @@ export type NakladyDavky = {
   reworkLaborCents: number;
   totalCents: number;
   costPerKgCents: number | null;
+  // M7 (v_batch_full_costs): NULL, kým mesiac dávky nie je uzavretý.
+  valcovnaOverheadCents: number | null;
+  labakOverheadCents: number | null;
+  fullTotalCents: number | null;
+  fullCostPerKgCents: number | null;
 };
 
 export type DetailDavky = {
@@ -216,11 +221,19 @@ export async function detailDavky(
     rework_labor_cents: string | number;
     total_cents: string | number;
     cost_per_kg_cents: string | number | null;
+    valcovna_overhead_cents: string | number | null;
+    labak_overhead_cents: string | number | null;
+    full_total_cents: string | number | null;
+    full_cost_per_kg_cents: string | number | null;
   };
+  // v_batch_full_costs (M7) = v_batch_costs + réžie po uzávierke mesiaca
+  // (NULL, kým mesiac dávky nie je uzavretý).
   const nakladyResult = await db.execute(
     sql`SELECT material_cents, labor_cents, rework_material_cents,
-               rework_labor_cents, total_cents, cost_per_kg_cents
-        FROM v_batch_costs WHERE batch_id = ${batchId}`,
+               rework_labor_cents, total_cents, cost_per_kg_cents,
+               valcovna_overhead_cents, labak_overhead_cents,
+               full_total_cents, full_cost_per_kg_cents
+        FROM v_batch_full_costs WHERE batch_id = ${batchId}`,
   );
   // Tvar výsledku sa líši podľa drivera: drizzle-orm/postgres-js (dev/prod)
   // vracia pole priamo, drizzle-orm/pglite (testy) ho balí do { rows }.
@@ -252,6 +265,22 @@ export async function detailDavky(
             nakladyRow.cost_per_kg_cents === null
               ? null
               : Number(nakladyRow.cost_per_kg_cents),
+          valcovnaOverheadCents:
+            nakladyRow.valcovna_overhead_cents === null
+              ? null
+              : Number(nakladyRow.valcovna_overhead_cents),
+          labakOverheadCents:
+            nakladyRow.labak_overhead_cents === null
+              ? null
+              : Number(nakladyRow.labak_overhead_cents),
+          fullTotalCents:
+            nakladyRow.full_total_cents === null
+              ? null
+              : Number(nakladyRow.full_total_cents),
+          fullCostPerKgCents:
+            nakladyRow.full_cost_per_kg_cents === null
+              ? null
+              : Number(nakladyRow.full_cost_per_kg_cents),
         }
       : null,
   };

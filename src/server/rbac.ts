@@ -4,6 +4,7 @@
 import type { UserRole } from "@/lib/enums";
 
 export const MODULY = [
+  "prehlad",
   "faktury",
   "dodavatelia",
   "sklad",
@@ -21,6 +22,10 @@ export type Modul = (typeof MODULY)[number];
 // Ktoré roly majú prístup ku ktorému modulu (SPEC §4 + zadanie Kroku 2).
 // admin má všetko (rieši sa v smieVidiet bez potreby vypisovať ho všade).
 const POVOLENIA: Record<Modul, UserRole[]> = {
+  // M8: dashboard — plný obsah admin+ekonóm; majstri vidia len výrobné KPI a
+  // prestoje (finančné sekcie filtruje stránka podľa roly). Laborant má domov
+  // v labáku a prehľad nemá.
+  prehlad: ["ekonom", "majster_valcovne", "majster_lisovne"],
   faktury: ["ekonom"],
   dodavatelia: ["ekonom"],
   // SPEC §4: sklad je doména ekonóma. Majster valcovne robí výdaj navážky v
@@ -80,7 +85,9 @@ export function smieVidietRoute(role: UserRole, pathname: string): boolean {
  * hláškou (žiadny loop).
  */
 export function domovModul(role: UserRole): string | null {
-  if (role === "admin" || role === "ekonom") return "/faktury";
+  // M8: admin a ekonóm pristávajú na dashboarde — faktúry po splatnosti
+  // musia byť viditeľné bez jediného kliku (SPEC §12).
+  if (role === "admin" || role === "ekonom") return "/";
   if (role === "majster_valcovne") return "/vyroba";
   if (role === "laborant") return "/labak";
   if (role === "majster_lisovne") return "/lisovna";

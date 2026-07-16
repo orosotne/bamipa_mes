@@ -14,27 +14,27 @@ describe("smieVidiet", () => {
     // rola, POVOLENÉ moduly, ZAKÁZANÉ moduly
     [
       "ekonom",
-      ["faktury", "dodavatelia", "sklad", "kalkulacie"],
+      ["faktury", "dodavatelia", "sklad", "kalkulacie", "prehlad"],
       ["vyroba", "labak", "ciselniky", "pouzivatelia"],
     ],
     [
       "majster_valcovne",
-      ["vyroba"],
+      ["vyroba", "prehlad"],
       ["faktury", "sklad", "labak", "ciselniky", "pouzivatelia"],
     ],
     [
       "laborant",
       ["labak"],
-      ["faktury", "vyroba", "sklad", "ciselniky", "pouzivatelia"],
+      ["faktury", "vyroba", "sklad", "ciselniky", "pouzivatelia", "prehlad"],
     ],
     [
       "admin",
-      ["faktury", "dodavatelia", "sklad", "vyroba", "receptury", "labak", "ciselniky", "pouzivatelia"],
+      ["faktury", "dodavatelia", "sklad", "vyroba", "receptury", "labak", "ciselniky", "pouzivatelia", "prehlad"],
       [],
     ],
     [
       "majster_lisovne",
-      [],
+      ["prehlad"],
       ["faktury", "vyroba", "labak", "sklad", "kalkulacie", "ciselniky", "pouzivatelia"],
     ],
   ];
@@ -72,9 +72,9 @@ describe("smieVidietRoute", () => {
 });
 
 describe("domovModul", () => {
-  test("mapuje rolu na domovský modul", () => {
-    expect(domovModul("admin")).toBe("/faktury");
-    expect(domovModul("ekonom")).toBe("/faktury");
+  test("mapuje rolu na domovský modul (admin/ekonóm → dashboard)", () => {
+    expect(domovModul("admin")).toBe("/");
+    expect(domovModul("ekonom")).toBe("/");
     expect(domovModul("majster_valcovne")).toBe("/vyroba");
     expect(domovModul("laborant")).toBe("/labak");
     expect(domovModul("majster_lisovne")).toBe("/lisovna");

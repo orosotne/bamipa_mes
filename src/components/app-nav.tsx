@@ -6,6 +6,7 @@ import {
   FlaskConical,
   Footprints,
   Layers,
+  LayoutDashboard,
   Package,
   Settings2,
   Truck,
@@ -24,6 +25,7 @@ const SEKCIE: {
   icon: typeof FileText;
   modul: Modul;
 }[] = [
+  { href: "/", label: "Prehľad", icon: LayoutDashboard, modul: "prehlad" },
   { href: "/faktury", label: "Faktúry", icon: FileText, modul: "faktury" },
   { href: "/dodavatelia", label: "Dodávatelia", icon: Truck, modul: "dodavatelia" },
   { href: "/sklad", label: "Sklad", icon: Warehouse, modul: "sklad" },
@@ -48,7 +50,7 @@ export function AppNav({ role }: { role: UserRole }) {
           href={href}
           className={cn(
             "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-            pathname.startsWith(href)
+            (href === "/" ? pathname === "/" : pathname.startsWith(href))
               ? "bg-primary text-primary-foreground"
               : "text-muted-foreground hover:bg-muted hover:text-foreground",
           )}

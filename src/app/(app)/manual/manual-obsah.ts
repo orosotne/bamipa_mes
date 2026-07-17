@@ -1,57 +1,50 @@
-<!doctype html>
-<html lang="sk">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex">
-<title>MANUAL for BAMIPA_MES</title>
-<style>
-  :root {
+// MANUAL for BAMIPA_MES — obsah stránky /manual (jediný zdroj vykreslenej
+// príručky; textová podoba per rola je v docs/prirucka/*.md). CSS je scopované
+// pod .manual-root, aby nepretieklo do zvyšku appky. Pri zmene logiky/UI
+// aktualizuj tento súbor aj docs/prirucka/ v tom istom commite (CLAUDE.md).
+export const MANUAL_HTML = `<style>
+  .manual-root {
     --fg: #1c1c1e; --muted: #6b7280; --border: #e5e7eb;
     --accent: #0f4c81; --warn-bg: #fef3c7; --warn-border: #f59e0b;
     --msg-bg: #f3f4f6;
+    color: var(--fg); line-height: 1.55;
   }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; color: var(--fg); background: #fff;
-    font: 16px/1.55 -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  }
-  .wrap { max-width: 52rem; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
-  header.doc { border-bottom: 3px solid var(--accent); padding-bottom: 1rem; margin-bottom: 1.5rem; }
-  header.doc h1 { margin: 0; font-size: 1.9rem; letter-spacing: -0.02em; }
-  header.doc p { margin: .35rem 0 0; color: var(--muted); }
-  nav.toc { background: var(--msg-bg); border: 1px solid var(--border); border-radius: .5rem; padding: 1rem 1.25rem; margin-bottom: 2rem; }
-  nav.toc strong { display: block; margin-bottom: .5rem; }
-  nav.toc ol { margin: 0; padding-left: 1.25rem; }
-  nav.toc a { color: var(--accent); text-decoration: none; }
-  nav.toc a:hover { text-decoration: underline; }
-  section.rola { border-top: 2px solid var(--border); margin-top: 2.5rem; padding-top: 1.5rem; }
-  h2 { font-size: 1.5rem; margin: 0 0 .25rem; letter-spacing: -0.01em; }
-  h2 + p.pod { color: var(--muted); margin-top: 0; }
-  h3 { font-size: 1.15rem; margin: 1.75rem 0 .5rem; }
-  h4 { font-size: 1rem; margin: 1.25rem 0 .4rem; }
-  ol, ul { padding-left: 1.4rem; }
-  li { margin: .25rem 0; }
-  b, strong { font-weight: 650; }
-  .hlaska { font-style: italic; background: var(--msg-bg); border-radius: .25rem; padding: 0 .3rem; }
-  .pozor { background: var(--warn-bg); border-left: 4px solid var(--warn-border); border-radius: .25rem; padding: .75rem 1rem; margin: 1rem 0; }
-  .faq dt { font-weight: 650; margin-top: .9rem; }
-  .faq dd { margin: .2rem 0 0 0; }
-  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9em; background: var(--msg-bg); border-radius: .25rem; padding: .05rem .3rem; }
-  footer.doc { margin-top: 3rem; border-top: 1px solid var(--border); padding-top: 1rem; color: var(--muted); font-size: .875rem; }
-  .print-btn { float: right; font: inherit; padding: .4rem .9rem; border: 1px solid var(--border); border-radius: .4rem; background: #fff; cursor: pointer; }
-  .print-btn:hover { background: var(--msg-bg); }
+  .manual-root .wrap { max-width: 52rem; margin: 0 auto; padding: 0 0 3rem; }
+  .manual-root header.doc { border-bottom: 3px solid var(--accent); padding-bottom: 1rem; margin-bottom: 1.5rem; }
+  .manual-root header.doc h1 { margin: 0; font-size: 1.9rem; font-weight: 650; letter-spacing: -0.02em; }
+  .manual-root header.doc p { margin: .35rem 0 0; color: var(--muted); }
+  .manual-root nav.toc { background: var(--msg-bg); border: 1px solid var(--border); border-radius: .5rem; padding: 1rem 1.25rem; margin-bottom: 2rem; }
+  .manual-root nav.toc strong { display: block; margin-bottom: .5rem; }
+  .manual-root nav.toc ol { margin: 0; padding-left: 1.25rem; list-style: decimal; }
+  .manual-root nav.toc a { color: var(--accent); text-decoration: none; }
+  .manual-root nav.toc a:hover { text-decoration: underline; }
+  .manual-root section.rola { border-top: 2px solid var(--border); margin-top: 2.5rem; padding-top: 1.5rem; }
+  .manual-root h2 { font-size: 1.5rem; font-weight: 650; margin: 0 0 .25rem; letter-spacing: -0.01em; }
+  .manual-root h2 + p.pod { color: var(--muted); margin-top: 0; }
+  .manual-root h3 { font-size: 1.15rem; font-weight: 650; margin: 1.75rem 0 .5rem; }
+  .manual-root h4 { font-size: 1rem; font-weight: 650; margin: 1.25rem 0 .4rem; }
+  .manual-root p { margin: .75rem 0; }
+  .manual-root ol { padding-left: 1.4rem; list-style: decimal; margin: .75rem 0; }
+  .manual-root ul { padding-left: 1.4rem; list-style: disc; margin: .75rem 0; }
+  .manual-root li { margin: .25rem 0; }
+  .manual-root b, .manual-root strong { font-weight: 650; }
+  .manual-root .hlaska { font-style: italic; background: var(--msg-bg); border-radius: .25rem; padding: 0 .3rem; }
+  .manual-root .pozor { background: var(--warn-bg); border-left: 4px solid var(--warn-border); border-radius: .25rem; padding: .75rem 1rem; margin: 1rem 0; }
+  .manual-root .faq dt { font-weight: 650; margin-top: .9rem; }
+  .manual-root .faq dd { margin: .2rem 0 0 0; }
+  .manual-root code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9em; background: var(--msg-bg); border-radius: .25rem; padding: .05rem .3rem; }
+  .manual-root footer.doc { margin-top: 3rem; border-top: 1px solid var(--border); padding-top: 1rem; color: var(--muted); font-size: .875rem; }
+  .manual-root .print-btn { float: right; font: inherit; padding: .4rem .9rem; border: 1px solid var(--border); border-radius: .4rem; background: #fff; cursor: pointer; }
+  .manual-root .print-btn:hover { background: var(--msg-bg); }
   @media print {
-    .print-btn, nav.toc { display: none; }
-    body { font-size: 11pt; }
-    .wrap { max-width: none; padding: 0; }
-    section.rola { break-before: page; border-top: none; margin-top: 0; padding-top: 0; }
-    a { color: inherit; text-decoration: none; }
-    .pozor { break-inside: avoid; }
+    .manual-root .print-btn, .manual-root nav.toc { display: none; }
+    .manual-root { font-size: 11pt; }
+    .manual-root .wrap { max-width: none; padding: 0; }
+    .manual-root section.rola { break-before: page; border-top: none; margin-top: 0; padding-top: 0; }
+    .manual-root a { color: inherit; text-decoration: none; }
+    .manual-root .pozor { break-inside: avoid; }
   }
 </style>
-</head>
-<body>
 <div class="wrap">
 
 <header class="doc">
@@ -85,7 +78,7 @@
   </ol>
   <p>Možné hlášky: <span class="hlaska">„Zadaj email aj heslo."</span> — jedno z polí je prázdne; <span class="hlaska">„Nesprávny email alebo heslo."</span> — preklep v údajoch, skús znova; ak si heslo nepamätáš, pozri 1.3.</p>
   <p>Po prihlásení pristaneš na <b>Prehľade</b> (dashboard) — výnimkou je <b>Laborant</b>, ktorého systém presmeruje rovno do <b>Labáku</b>. Majstri vidia na Prehľade výrobné KPI, prestoje a nepodarky; admin a ekonóm aj financie (cash-flow, náklady, marže).</p>
-  <p>Vľavo je bočný panel s navigáciou — vidíš v ňom len moduly, na ktoré má tvoja rola právo. Úplne dole v paneli je oranžové tlačidlo <b>Manuál</b> (s ikonou otáznika ?), pod ním tvoje meno, rola a tlačidlo <b>Odhlásiť</b>. Tlačidlo <b>Manuál</b> otvorí túto príručku v novej karte prehliadača.</p>
+  <p>Vľavo je bočný panel s navigáciou — vidíš v ňom len moduly, na ktoré má tvoja rola právo. Úplne dole v paneli je oranžové tlačidlo <b>Manuál</b> (s ikonou otáznika ?), pod ním tvoje meno, rola a tlačidlo <b>Odhlásiť</b>. Tlačidlo <b>Manuál</b> otvorí túto príručku priamo v aplikácii (stránka /manual) — späť sa vrátiš navigáciou vľavo alebo šípkou Späť.</p>
 
   <h3>1.2 Odhlásenie</h3>
   <ol>
@@ -535,9 +528,8 @@
 </section>
 
 <footer class="doc">
-  <p>Zdroj manuálu: <code>docs/prirucka/*.md</code> a <code>public/manual.html</code> v repozitári <code>bamipa_mes</code>. Pri každej zmene logiky aplikácie sa manuál aktualizuje spolu so zmenou (pravidlo v CLAUDE.md). Stav zodpovedá aplikácii k 17.&nbsp;7.&nbsp;2026.</p>
+  <p>Zdroj manuálu: <code>docs/prirucka/*.md</code> a <code>src/app/(app)/manual/manual-obsah.ts</code> v repozitári <code>bamipa_mes</code>. Pri každej zmene logiky aplikácie sa manuál aktualizuje spolu so zmenou (pravidlo v CLAUDE.md). Stav zodpovedá aplikácii k 17.&nbsp;7.&nbsp;2026.</p>
 </footer>
 
 </div>
-</body>
-</html>
+`;

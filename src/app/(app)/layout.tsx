@@ -39,15 +39,13 @@ export default async function AppLayout({
               Šablóny na import
             </Link>
           )}
-          <a
-            href="/manual.html"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/manual"
             className="mb-3 flex w-full items-center justify-start gap-2 rounded-lg bg-orange-500 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-600"
           >
             <HelpCircle className="h-4 w-4" />
             Manuál
-          </a>
+          </Link>
           <div className="px-3 pb-2">
             <div className="truncate text-sm font-medium">{user.displayName}</div>
             <div className="text-xs text-muted-foreground">{ROLY[user.role]}</div>

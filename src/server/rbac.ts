@@ -15,6 +15,7 @@ export const MODULY = [
   "kalkulacie",
   "ciselniky",
   "pouzivatelia",
+  "manual",
 ] as const;
 
 export type Modul = (typeof MODULY)[number];
@@ -43,6 +44,8 @@ const POVOLENIA: Record<Modul, UserRole[]> = {
   kalkulacie: ["ekonom"],
   ciselniky: [], // len admin
   pouzivatelia: [], // len admin
+  // Používateľská príručka (/manual) — číta ju každá prihlásená rola.
+  manual: ["ekonom", "majster_valcovne", "laborant", "majster_lisovne"],
 };
 
 // Prefix routy → modul (najdlhší prefix má prednosť netreba — prefixy sú
@@ -58,6 +61,7 @@ const ROUTA_MODUL: { prefix: string; modul: Modul }[] = [
   { prefix: "/kalkulacie", modul: "kalkulacie" },
   { prefix: "/ciselniky", modul: "ciselniky" },
   { prefix: "/pouzivatelia", modul: "pouzivatelia" },
+  { prefix: "/manual", modul: "manual" },
 ];
 
 /** Smie daná rola vidieť/používať modul? Admin vždy áno. */

@@ -14,27 +14,27 @@ describe("smieVidiet", () => {
     // rola, POVOLENÉ moduly, ZAKÁZANÉ moduly
     [
       "ekonom",
-      ["faktury", "dodavatelia", "sklad", "kalkulacie", "prehlad"],
+      ["faktury", "dodavatelia", "sklad", "kalkulacie", "prehlad", "manual"],
       ["vyroba", "labak", "ciselniky", "pouzivatelia"],
     ],
     [
       "majster_valcovne",
-      ["vyroba", "prehlad"],
+      ["vyroba", "prehlad", "manual"],
       ["faktury", "sklad", "labak", "ciselniky", "pouzivatelia"],
     ],
     [
       "laborant",
-      ["labak"],
+      ["labak", "manual"],
       ["faktury", "vyroba", "sklad", "ciselniky", "pouzivatelia", "prehlad"],
     ],
     [
       "admin",
-      ["faktury", "dodavatelia", "sklad", "vyroba", "receptury", "labak", "ciselniky", "pouzivatelia", "prehlad"],
+      ["faktury", "dodavatelia", "sklad", "vyroba", "receptury", "labak", "ciselniky", "pouzivatelia", "prehlad", "manual"],
       [],
     ],
     [
       "majster_lisovne",
-      ["prehlad"],
+      ["prehlad", "manual"],
       ["faktury", "vyroba", "labak", "sklad", "kalkulacie", "ciselniky", "pouzivatelia"],
     ],
   ];
@@ -58,6 +58,8 @@ describe("smieVidietRoute", () => {
     expect(smieVidietRoute("majster_valcovne", "/vyroba")).toBe(true);
     expect(smieVidietRoute("ekonom", "/kalkulacie/2026-06")).toBe(true);
     expect(smieVidietRoute("majster_lisovne", "/kalkulacie")).toBe(false);
+    expect(smieVidietRoute("laborant", "/manual")).toBe(true);
+    expect(smieVidietRoute("majster_valcovne", "/manual")).toBe(true);
   });
 
   test("domovská stránka „/“ je prístupná každej role", () => {

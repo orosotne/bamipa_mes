@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>MANUAL for BAMIPA_MES</title>
+<style>
+  :root {
+    --fg: #1c1c1e; --muted: #6b7280; --border: #e5e7eb;
+    --accent: #0f4c81; --warn-bg: #fef3c7; --warn-border: #f59e0b;
+    --msg-bg: #f3f4f6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; color: var(--fg); background: #fff;
+    font: 16px/1.55 -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  .wrap { max-width: 52rem; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+  header.doc { border-bottom: 3px solid var(--accent); padding-bottom: 1rem; margin-bottom: 1.5rem; }
+  header.doc h1 { margin: 0; font-size: 1.9rem; letter-spacing: -0.02em; }
+  header.doc p { margin: .35rem 0 0; color: var(--muted); }
+  nav.toc { background: var(--msg-bg); border: 1px solid var(--border); border-radius: .5rem; padding: 1rem 1.25rem; margin-bottom: 2rem; }
+  nav.toc strong { display: block; margin-bottom: .5rem; }
+  nav.toc ol { margin: 0; padding-left: 1.25rem; }
+  nav.toc a { color: var(--accent); text-decoration: none; }
+  nav.toc a:hover { text-decoration: underline; }
+  section.rola { border-top: 2px solid var(--border); margin-top: 2.5rem; padding-top: 1.5rem; }
+  h2 { font-size: 1.5rem; margin: 0 0 .25rem; letter-spacing: -0.01em; }
+  h2 + p.pod { color: var(--muted); margin-top: 0; }
+  h3 { font-size: 1.15rem; margin: 1.75rem 0 .5rem; }
+  h4 { font-size: 1rem; margin: 1.25rem 0 .4rem; }
+  ol, ul { padding-left: 1.4rem; }
+  li { margin: .25rem 0; }
+  b, strong { font-weight: 650; }
+  .hlaska { font-style: italic; background: var(--msg-bg); border-radius: .25rem; padding: 0 .3rem; }
+  .pozor { background: var(--warn-bg); border-left: 4px solid var(--warn-border); border-radius: .25rem; padding: .75rem 1rem; margin: 1rem 0; }
+  .faq dt { font-weight: 650; margin-top: .9rem; }
+  .faq dd { margin: .2rem 0 0 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9em; background: var(--msg-bg); border-radius: .25rem; padding: .05rem .3rem; }
+  footer.doc { margin-top: 3rem; border-top: 1px solid var(--border); padding-top: 1rem; color: var(--muted); font-size: .875rem; }
+  .print-btn { float: right; font: inherit; padding: .4rem .9rem; border: 1px solid var(--border); border-radius: .4rem; background: #fff; cursor: pointer; }
+  .print-btn:hover { background: var(--msg-bg); }
+  @media print {
+    .print-btn, nav.toc { display: none; }
+    body { font-size: 11pt; }
+    .wrap { max-width: none; padding: 0; }
+    section.rola { break-before: page; border-top: none; margin-top: 0; padding-top: 0; }
+    a { color: inherit; text-decoration: none; }
+    .pozor { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+  <button class="print-btn" onclick="window.print()">Tlačiť</button>
+  <h1>MANUAL for BAMIPA_MES</h1>
+  <p>Používateľská príručka — výrobno-nákladový systém BAMIPA · <a href="/">bamipa-mes.vercel.app</a></p>
+</header>
+
+<nav class="toc">
+  <strong>Obsah</strong>
+  <ol>
+    <li><a href="#spolocne">Spoločné pokyny (prihlásenie, heslo, tablet)</a></li>
+    <li><a href="#majster-valcovne">Majster valcovne</a></li>
+    <li><a href="#laborant">Laborant</a></li>
+    <li><a href="#majster-lisovne">Majster lisovne</a></li>
+    <li><a href="#ekonomka">Ekonómka (Ekonóm / back-office)</a></li>
+    <li><a href="#admin">Administrátor / konateľ</a></li>
+  </ol>
+</nav>
+
+<!-- ══════════════════════════ 1. SPOLOČNÉ ══════════════════════════ -->
+<section id="spolocne">
+  <h2>1 · Spoločné pokyny</h2>
+  <p class="pod">Platí pre všetky roly. Adresa aplikácie: <b>https://bamipa-mes.vercel.app</b></p>
+
+  <h3>1.1 Prihlásenie</h3>
+  <ol>
+    <li>Otvor v prehliadači adresu aplikácie. Zobrazí sa stránka <b>BAMIPA — výrobno-nákladový systém</b>.</li>
+    <li>Vyplň pole <b>Email</b> a pole <b>Heslo</b>.</li>
+    <li>Ťukni na <b>Prihlásiť sa</b> (alebo stlač Enter).</li>
+  </ol>
+  <p>Možné hlášky: <span class="hlaska">„Zadaj email aj heslo."</span> — jedno z polí je prázdne; <span class="hlaska">„Nesprávny email alebo heslo."</span> — preklep v údajoch, skús znova; ak si heslo nepamätáš, pozri 1.3.</p>
+  <p>Po prihlásení pristaneš na <b>Prehľade</b> (dashboard) — výnimkou je <b>Laborant</b>, ktorého systém presmeruje rovno do <b>Labáku</b>. Majstri vidia na Prehľade výrobné KPI, prestoje a nepodarky; admin a ekonóm aj financie (cash-flow, náklady, marže).</p>
+  <p>Vľavo je bočný panel s navigáciou — vidíš v ňom len moduly, na ktoré má tvoja rola právo. Úplne dole v paneli je tvoje meno, rola a tlačidlo <b>Odhlásiť</b>.</p>
+
+  <h3>1.2 Odhlásenie</h3>
+  <ol>
+    <li>V ľavom paneli úplne dole ťukni na <b>Odhlásiť</b>.</li>
+    <li>Systém ťa vráti na prihlasovaciu stránku.</li>
+  </ol>
+  <p>Na zdieľanom tablete na dielni sa po skončení zmeny vždy odhlás.</p>
+
+  <h3>1.3 Zabudnuté heslo</h3>
+  <p>Aplikácia nemá samoobslužný reset hesla (žiadne „zabudol som heslo" na prihlasovacej stránke).</p>
+  <ol>
+    <li>Obráť sa na <b>administrátora</b>.</li>
+    <li>Administrátor ti nastaví nové dočasné heslo (robí to mimo aplikácie, v správe Supabase — pozri časť 6 Admin).</li>
+    <li>Prihlás sa novým heslom.</li>
+  </ol>
+
+  <h3>1.4 Tablet — pridať aplikáciu na plochu</h3>
+  <p><b>iPad (Safari):</b></p>
+  <ol>
+    <li>Otvor https://bamipa-mes.vercel.app v Safari.</li>
+    <li>Ťukni na ikonu <b>Zdieľať</b> (štvorec so šípkou hore).</li>
+    <li>Vyber <b>Pridať na plochu</b> (Add to Home Screen) a potvrď <b>Pridať</b>.</li>
+  </ol>
+  <p><b>Android (Chrome):</b></p>
+  <ol>
+    <li>Otvor https://bamipa-mes.vercel.app v Chrome.</li>
+    <li>Ťukni na menu <b>⋮</b> vpravo hore.</li>
+    <li>Vyber <b>Pridať na plochu</b> a potvrď.</li>
+  </ol>
+
+  <h3>1.5 Rozpísané formuláre sa nestrácajú</h3>
+  <p>Dielenské formuláre (nová dávka, navážka, výkony lisov, merania labáku…) si rozpísané hodnoty priebežne ukladajú <b>v zariadení</b>. Keď sa tablet vypne alebo omylom zavrieš prehliadač, po otvorení tej istej obrazovky nájdeš údaje predvyplnené. Pozor: koncept platí len na tom istom zariadení a prehliadači — nedokončený zápis sa neprenáša na iný tablet.</p>
+
+  <h3>1.6 Kto čo robí</h3>
+  <ul>
+    <li><b>Majster valcovne</b> — výrobné dávky zmesí: navážka, práca, prestoje, odovzdanie na labák.</li>
+    <li><b>Laborant</b> — výsledky skúšok, verdikt SCHVÁLENÉ / ZAMIETNUTÉ (QC brána).</li>
+    <li><b>Majster lisovne</b> — výrobné príkazy, výkony lisov, nepodarky, orez, expedícia.</li>
+    <li><b>Ekonóm / back-office</b> — faktúry, príjemky, sklad, mesačné uzávierky, reporty.</li>
+    <li><b>Administrátor / konateľ</b> — všetko + používatelia, receptúry, číselníky, sadzby.</li>
+  </ul>
+  <p>Každý zápis má audit trail (kto, kedy, čo zmenil) — píš pod vlastným účtom.</p>
+</section>
+
+<!-- ══════════════════════════ 2. MAJSTER VALCOVNE ══════════════════════════ -->
+<section id="majster-valcovne" class="rola">
+  <h2>2 · Majster valcovne</h2>
+
+  <h3>2.1 Čo vidíš po prihlásení</h3>
+  <p>Pristaneš na <b>Prehľade</b> (výrobné KPI, prestoje a nepodarky). V ľavom paneli máš dva moduly: <b>Prehľad</b> a <b>Výroba</b> — pracuješ vo <b>Výrobe</b> (nadpis „Výroba — valcovňa"). Zoznam dávok má stĺpce: Číslo dávky, Zmes, Dátum, Zmena, Stroj, Obsluha, Stav. Stavy dávky: <b>Rozpracovaná → Čaká na labák → Schválená / Zamietnutá</b>.</p>
+
+  <h3>2.2 Založiť dávku</h3>
+  <ol>
+    <li>Vo <b>Výrobe</b> ťukni na <b>Nová dávka</b>.</li>
+    <li>Vyber <b>Zmes</b> (ponúkajú sa len zmesi s aktívnou verziou receptu).</li>
+    <li>Skontroluj <b>Dátum výroby</b> (predvyplnený dnešok) a <b>Násobok dávky (scale factor)</b> — napr. <code>1</code> alebo <code>2,5</code>.</li>
+    <li>Ťukni na <b>Zmenu</b>: Ranná / Poobedná / Nočná.</li>
+    <li>Vyber <b>Stroj</b> a <b>Obsluhu</b>, prípadne dopíš <b>Poznámku</b>.</li>
+    <li>Ťukni na <b>Založiť dávku</b> — systém pridelí číslo dávky a otvorí jej detail.</li>
+  </ol>
+
+  <h3>2.3 Vydať navážku</h3>
+  <ol>
+    <li>V detaile dávky nájdi kartu <b>Navážka — plán vs. skutočnosť</b>.</li>
+    <li>Stĺpec <b>Vydať teraz (kg)</b> je predvyplnený zostatkom podľa receptu (plán − už vydané). Uprav na skutočne navážené množstvá.</li>
+    <li>Ťukni na <b>Vydať zo skladu</b> → hláška <span class="hlaska">„Navážka vydaná zo skladu."</span> Výdaj automaticky odpíše materiál zo skladových šarží (FIFO).</li>
+    <li>Vydané množstvá vidíš nižšie v časti <b>Skutočné výdaje (traceabilita)</b>. Omyl opravíš tlačidlom <b>Storno</b> pri riadku a novým výdajom.</li>
+  </ol>
+  <p>Navážku môžeš vydávať aj po častiach — opakovaným zápisom do <b>Vydať teraz (kg)</b>.</p>
+
+  <h3>2.4 Zapísať prácu, prestoje a čas</h3>
+  <ol>
+    <li><b>Práca obsluhy</b>: vyber pracovníka, dátum, zadaj <b>Hodiny</b> → <b>Pridať</b>.</li>
+    <li><b>Prestoje</b>: vyber <b>Dôvod prestoja</b> z číselníka, zadaj <b>Minúty</b> → <b>Pridať</b>.</li>
+    <li><b>Čas miešania (minúty)</b>: zadaj celkový čas → <b>Uložiť</b>.</li>
+  </ol>
+
+  <h3>2.5 Odovzdať na labák</h3>
+  <ol>
+    <li>Ťukni na veľké tlačidlo <b>Odovzdať na labák</b>.</li>
+    <li>V dialógu <b>Odovzdanie dávky na labák</b> zadaj <b>Skutočná výroba (kg)</b>.</li>
+    <li>Ťukni na <b>Potvrdiť a odovzdať</b> → dávka prejde do stavu <b>Čaká na labák</b> a záznam sa uzamkne.</li>
+  </ol>
+
+  <h3>2.6 Ak labák dávku zamietne (úprava dávky)</h3>
+  <ol>
+    <li>Dávka je v stave <b>Zamietnutá</b>; v jej detaile sa objaví karta <b>Úprava dávky (rework)</b> s textom <b>Inštrukcia labáku</b> (čo treba spraviť).</li>
+    <li>Dodatočný materiál: vyber materiál, zadaj kg → <b>Vydať</b>.</li>
+    <li>Dodatočná práca: vyber pracovníka, dátum, hodiny → <b>Pridať</b>.</li>
+    <li>Po úprave ťukni na <b>Znovu odovzdať na labák</b> a zadaj skutočnú výrobu (kg). Všetky vícenáklady zostávajú na tej istej dávke.</li>
+  </ol>
+
+  <div class="pozor">
+    <b>Na čo si dať pozor</b>
+    <ul>
+      <li><span class="hlaska">„Dávka čaká na vyhodnotenie labákom — záznam je uzamknutý."</span> — po odovzdaní už dávku nemeníš; čakaj na verdikt labáku.</li>
+      <li><span class="hlaska">„Dávka je uzamknutá (stav „…") — záznam nemožno upraviť."</span> — zapisovať možno len do dávky v stave Rozpracovaná (alebo do reworku zamietnutej).</li>
+      <li><span class="hlaska">„Nedostatok zásoby: požadované X kg, dostupné Y kg — chýba Z kg."</span> — materiál nie je na sklade; výdaj sa nevykoná vôbec. Rieš s ekonómkou (chýba príjemka).</li>
+      <li><span class="hlaska">„Zmes nemá aktívnu verziu receptu — najprv ju aktivuj v Receptúrach."</span> — receptúry spravuje admin; požiadaj ho o aktiváciu verzie.</li>
+      <li>Uzavretý mesiac sa nedá meniť — hláška <span class="hlaska">„Mesiac … je uzavretý … nemožno meniť."</span> Opravy patria do aktuálneho obdobia; reopen smie len admin.</li>
+      <li>Bez verdiktu <b>SCHVÁLENÉ</b> od labáku sa dávka nedá použiť v lisovni.</li>
+    </ul>
+  </div>
+
+  <h3>2.7 Mini-FAQ</h3>
+  <dl class="faq">
+    <dt>Pomýlil som sa v navážke — čo teraz?</dt>
+    <dd>Kým je dávka Rozpracovaná: pri riadku výdaja v „Skutočné výdaje (traceabilita)" ťukni <b>Storno</b> a vydaj správne množstvo.</dd>
+    <dt>Zabudol som zapísať prestoj a dávka je už na labáku.</dt>
+    <dd>Záznam je uzamknutý. Ak labák ešte nevyniesol verdikt, nedá sa to v aplikácii vrátiť — nahlás to adminovi.</dd>
+    <dt>Prečo mi systém neponúka zmes, ktorú chcem miešať?</dt>
+    <dd>Zmes nemá aktívnu verziu receptu. Aktivuje ju admin v Receptúrach.</dd>
+    <dt>Kde vidím, koľko dávka stojí?</dt>
+    <dd>V detaile dávky, karta <b>Náklad dávky</b>: materiál, práca, prípadné vícenáklady úprav (rework) a priamy náklad na 1 kg. Réžie a plný náklad sa doplnia po mesačnej uzávierke.</dd>
+    <dt>Vypol sa tablet uprostred zápisu — prišiel som o údaje?</dt>
+    <dd>Nie, rozpísaný formulár sa na tom istom zariadení obnoví (pozri 1.5).</dd>
+  </dl>
+</section>
+
+<!-- ══════════════════════════ 3. LABORANT ══════════════════════════ -->
+<section id="laborant" class="rola">
+  <h2>3 · Laborant</h2>
+
+  <h3>3.1 Čo vidíš po prihlásení</h3>
+  <p>Systém ťa presmeruje do modulu <b>Labák</b> (nadpis „Labák — QC brána") — je to jediný modul v tvojom ľavom paneli. Hore je fronta dávok čakajúcich na meranie a verdikt (karty s číslom dávky, zmesou, kg a dátumom), dole karta <b>Trendy parametrov (SPC)</b>. Dávka, ktorá sa vracia po úprave, má štítok <b>Opakovaný test</b>.</p>
+  <p>Bez verdiktu <b>SCHVÁLENÉ</b> sa dávka nedá použiť v lisovni — ty si QC brána.</p>
+
+  <h3>3.2 Zapísať meranie</h3>
+  <ol>
+    <li>Vo fronte ťukni na kartu dávky (napr. <code>V-2026-0012</code>).</li>
+    <li>Karta <b>Zápis meraní</b> ponúka všetky parametre zmesi s limitmi (napr. <code>ML · limit 40 – 60</code>).</li>
+    <li>Zapíš nameranú hodnotu ku každému parametru. Riadok sa hneď zafarbí: <b>zelený</b> = v limite, <b>červený s výstražným trojuholníkom</b> = mimo limitu.</li>
+    <li>Ťukni na <b>Zapísať meranie</b> → hláška <span class="hlaska">„Meranie zapísané — vynes verdikt."</span></li>
+  </ol>
+  <p>Ak nejaký parameter chýba, systém zápis odmietne: <span class="hlaska">„Doplň všetky parametre (chýba: …)."</span> Meranie je vždy kompletná sada.</p>
+
+  <h3>3.3 Vyniesť verdikt</h3>
+  <p>Po zápise sa zobrazí karta <b>Verdikt — meranie #N</b> s tabuľkou výsledkov (hodnoty mimo limitu podfarbené načerveno, stĺpec Stav: „v limite" / „mimo").</p>
+  <ul>
+    <li><b>SCHVÁLIŤ</b> — dávka prejde do stavu <b>Schválená</b>: <span class="hlaska">„Dávka schválená — možno ju použiť v lisovni."</span> Ak sú hodnoty mimo limitu, systém si vyžiada potvrdenie v dialógu <b>Schváliť napriek limitom?</b> → <b>Áno, schváliť</b>.</li>
+    <li><b>ZAMIETNUŤ</b> — otvorí sa dialóg <b>Zamietnutie dávky</b> s povinným poľom <b>Inštrukcia na úpravu dávky</b> (napr. „Pridať 1,5 kg síry a znovu premiešať 5 min."). Ťukni na <b>Zamietnuť a odoslať na úpravu</b>. Bez inštrukcie to nejde: <span class="hlaska">„Zadaj inštrukciu na úpravu dávky."</span> Dávka prejde do stavu <b>Zamietnutá</b>: <span class="hlaska">„Dávka zamietnutá — blokovaná pre lisovňu."</span></li>
+  </ul>
+  <p>K verdiktu sa loguje tvoje meno a čas. Všetky merania dávky zostávajú v karte <b>História meraní</b> (s limitmi platnými v čase merania — „Limit (snapshot)").</p>
+
+  <h3>3.4 Trendy parametrov (SPC)</h3>
+  <p>Na úvodnej stránke Labáku vyber <b>zmes</b> a <b>parameter</b> — graf ukáže vývoj nameraných hodnôt naprieč dávkami voči limitom.</p>
+
+  <div class="pozor">
+    <b>Na čo si dať pozor</b>
+    <ul>
+      <li><b>Verdikt sa nedá vziať späť.</b> Pri pokuse o druhý verdikt: <span class="hlaska">„Meranie už má vynesený verdikt."</span> Ak si sa pomýlil, okamžite informuj majstra lisovne (aby zmes nepoužil) a admina.</li>
+      <li><span class="hlaska">„Zmes nemá definované limity labáku."</span> / <span class="hlaska">„Bez limitov sa dávka nedá merať — najprv ich nastav v receptúre."</span> — limity per zmes nastavuje <b>admin</b> v Receptúrach. Požiadaj ho.</li>
+      <li>Zamietnutie vždy sprevádzaj konkrétnou inštrukciou — majster valcovne robí presne to, čo napíšeš.</li>
+      <li>Schválenie s hodnotami mimo limitu je tvoja zodpovednosť — systém ho dovolí len po výslovnom potvrdení.</li>
+    </ul>
+  </div>
+
+  <h3>3.5 Mini-FAQ</h3>
+  <dl class="faq">
+    <dt>Vo fronte niet dávky, ktorú majster hlási ako hotovú.</dt>
+    <dd>Do fronty padajú len dávky v stave <b>Čaká na labák</b>. Majster ju musí najprv „Odovzdať na labák" (so skutočnou výrobou v kg).</dd>
+    <dt>Zapísal som zlú hodnotu, ale ešte som nevyniesol verdikt.</dt>
+    <dd>Uložené meranie sa už nedá prepísať — po zápise máš len SCHVÁLIŤ / ZAMIETNUŤ. Hodnoty si skontroluj <b>pred</b> ťuknutím na „Zapísať meranie". Ak si omylom uložil nesprávne čísla, obráť sa na admina.</dd>
+    <dt>Dávka po úprave prišla znova — meriam všetko odznova?</dt>
+    <dd>Áno, každé meranie je kompletná sada parametrov. Staré merania zostávajú v Histórii meraní (#1, #2…).</dd>
+    <dt>Čo znamená „Opakovaný test"?</dt>
+    <dd>Dávka už bola zamietnutá a majster ju po úprave odovzdal znova.</dd>
+    <dt>Prečo v grafe trendov nič nie je?</dt>
+    <dd>Pre zvolenú kombináciu zmesi a parametra zatiaľ neexistujú merania — vyber inú zmes alebo parameter.</dd>
+  </dl>
+</section>
+
+<!-- ══════════════════════════ 4. MAJSTER LISOVNE ══════════════════════════ -->
+<section id="majster-lisovne" class="rola">
+  <h2>4 · Majster lisovne</h2>
+
+  <h3>4.1 Čo vidíš po prihlásení</h3>
+  <p>Pristaneš na <b>Prehľade</b> (výrobné KPI, prestoje a nepodarky). V ľavom paneli máš dva moduly: <b>Prehľad</b> a <b>Lisovňa</b> — pracuješ v <b>Lisovni</b> (nadpis „Lisovňa — výrobné príkazy"). Hore sú tlačidlá <b>Artikle</b>, <b>Expedícia</b> a <b>Nový príkaz</b>. Zoznam príkazov má stĺpce: Číslo príkazu, Artikel, Plán párov, Vyrobené (dobré), Nepodarky, Orez kg, Expedované, Stav. Stavy príkazu: <b>Nový → Vo výrobe → Dokončený</b> (alebo <b>Zrušený</b>).</p>
+  <p>Katalóg <b>Artikle</b> (modely podošiev, norma spotreby, predajná cena) len čítaš — mení ho admin.</p>
+
+  <h3>4.2 Založiť výrobný príkaz</h3>
+  <ol>
+    <li>Ťukni na <b>Nový príkaz</b>.</li>
+    <li>Vyber <b>Artikel (model podošvy)</b> — pri artikli vidíš kód priradenej zmesi.</li>
+    <li>Zadaj <b>Množstvo párov</b> (napr. 500).</li>
+    <li>Voliteľne ťukni <b>Vetvu prípravy zmesi</b>: <b>Barwell</b> alebo <b>Sekanie</b> (opätovným ťuknutím sa výber zruší). Prípadne dopíš <b>Poznámku</b>.</li>
+    <li>Ťukni na <b>Založiť príkaz</b> — systém pridelí číslo príkazu a otvorí jeho detail.</li>
+  </ol>
+
+  <h3>4.3 Zapísať výkon lisu (per lis a zmena)</h3>
+  <ol>
+    <li>V detaile príkazu v karte <b>Výkony lisov</b> vyplň formulár <b>Nový výkon</b>:
+      <ol>
+        <li><b>Dátum</b> a <b>Zmena</b> (Ranná / Poobedná / Nočná),</li>
+        <li><b>Lis</b> (LIS1–LIS9, STREKOLIS),</li>
+        <li><b>Dávka zmesi (len schválené)</b> — ponúkajú sa výlučne dávky schválené labákom, so zostatkom kg,</li>
+        <li><b>Počet cyklov</b>, <b>Vyrobené páry (dobré)</b>, <b>Spotreba zmesi (kg)</b>,</li>
+        <li><b>Obsluha</b>,</li>
+        <li><b>Nepodarky</b>: ťukni <b>+ Pridať nepodarok</b>, vyber dôvod z číselníka a zadaj páry,</li>
+        <li><b>Prestoje</b>: ťukni <b>+ Pridať prestoj</b>, vyber dôvod a zadaj minúty,</li>
+        <li>prípadne <b>Poznámka</b>.</li>
+      </ol>
+    </li>
+    <li>Ťukni na <b>Zapísať výkon</b> → hláška <span class="hlaska">„Výkon zapísaný."</span> Príkaz prejde do stavu <b>Vo výrobe</b>.</li>
+  </ol>
+  <p>Omyl vo výkone opravíš ikonou koša pri riadku (<b>Stornovať výkon</b>) a novým zápisom — výkon sa needituje.</p>
+
+  <h3>4.4 Zapísať orez / pretoky a prácu</h3>
+  <ol>
+    <li><b>Orez / pretoky (odpad)</b>: zadaj <b>Kg</b>, dátum, prípadne poznámku → <b>Pridať</b>.</li>
+    <li><b>Práca lisovne</b>: vyber pracovníka, dátum, zadaj hodiny → <b>Pridať</b> (orezávanie, zapravovanie, kontrola, balenie).</li>
+  </ol>
+
+  <h3>4.5 Dokončiť príkaz</h3>
+  <ol>
+    <li>Keď je vyrobené, ťukni vpravo hore na <b>Dokončiť príkaz</b>.</li>
+    <li>Potvrď otázku <span class="hlaska">„Dokončiť výrobný príkaz? Záznamy sa uzamknú."</span></li>
+    <li>Na opravy slúži tlačidlo <b>Znovu otvoriť</b> (nezabudni potom príkaz opäť dokončiť). Príkaz v stave <b>Nový</b> bez výroby sa dá <b>Zrušiť</b>.</li>
+  </ol>
+
+  <h3>4.6 Expedícia — dodací list</h3>
+  <ol>
+    <li>Lisovňa → <b>Expedícia</b> → <b>Nový dodací list</b>.</li>
+    <li>Skontroluj <b>Dátum expedície</b> a <b>Odberateľa</b> (predvyplnené <b>LOWA</b>).</li>
+    <li>V <b>Položkách</b> vyber <b>Výrobný príkaz</b> (vidíš, koľko má voľných párov) a zadaj <b>Páry</b>; ďalšie riadky cez <b>+ Pridať položku</b>.</li>
+    <li>Ťukni na <b>Vytvoriť dodací list</b> — systém pridelí číslo a otvorí detail.</li>
+    <li>V detaile dodacieho listu je tlačidlo <b>Traceability report</b> — tlačová zostava pre odberateľa (bez cien a receptúr). Vytlačíš ju tlačidlom <b>Tlačiť</b>.</li>
+    <li>Omylom vytvorený dodací list stornuješ tlačidlom <b>Stornovať DL</b> — páry sa vrátia na sklad hotových výrobkov.</li>
+  </ol>
+
+  <div class="pozor">
+    <b>Na čo si dať pozor</b>
+    <ul>
+      <li><b>Lisovať možno len zmes schválenú labákom.</b> Ak nie je čo vybrať: <span class="hlaska">„Žiadna schválená dávka zmesi so zostatkom — lisovať možno len zmes schválenú labákom."</span> Stráži to aj databáza: <span class="hlaska">„Dávka … nie je schválená labákom — výdaj zmesi do lisovne je zakázaný."</span></li>
+      <li><b>Zostatok dávky</b>: spotreba zmesi nesmie presiahnuť vyrobené kg dávky — <span class="hlaska">„Prekročený zostatok dávky … — spotreba … kg presahuje vyrobených … kg."</span></li>
+      <li><b>Expedovať sa nedá viac, než je vyrobené</b>: <span class="hlaska">„Nedostatok hotových párov: príkaz má vyrobených X párov, expedovalo by sa Y párov."</span></li>
+      <li>Dokončený príkaz je uzamknutý: <span class="hlaska">„Príkaz je dokončený — záznamy sú uzamknuté. Na opravy ho znovu otvor."</span></li>
+      <li>Väzba výkonu na dávku a príkaz je nemenná — <b>oprava = storno a nový záznam</b>.</li>
+      <li>Uzavretý mesiac sa nedá meniť — reopen smie len admin.</li>
+    </ul>
+  </div>
+
+  <h3>4.7 Mini-FAQ</h3>
+  <dl class="faq">
+    <dt>Prečo v „Dávka zmesi (len schválené)" nevidím dávku, ktorá je hotová?</dt>
+    <dd>Buď ešte nemá verdikt SCHVÁLENÉ od labáku, alebo už nemá zostatok kg, alebo je z inej zmesi, než vyžaduje artikel príkazu.</dd>
+    <dt>Zapísal som výkon na zlý lis / zlú dávku.</dt>
+    <dd>Výkon stornuj (ikona koša, potvrdenie „Stornovať výkon z …") a zapíš nanovo. Editovať sa nedá.</dd>
+    <dt>Kde vidím nepodarkovosť?</dt>
+    <dd>V detaile príkazu v karte <b>Súhrn výroby</b> (nepodarky aj %), celkové čísla na <b>Prehľade</b>.</dd>
+    <dt>Ako odberateľ dostane traceabilitu?</dt>
+    <dd>Detail dodacieho listu → <b>Traceability report</b> → <b>Tlačiť</b>. Report vedie reťazec dodávka → výrobný príkaz → dávka zmesi → šarže surovín, bez cien.</dd>
+    <dt>Založil som príkaz na zlý artikel.</dt>
+    <dd>Príkaz sa v aplikácii editovať nedá. Kým je <b>Nový</b> bez výkonov, ťukni <b>Zrušiť príkaz</b> a založ nový so správnym artiklom.</dd>
+  </dl>
+</section>
+
+<!-- ══════════════════════════ 5. EKONÓMKA ══════════════════════════ -->
+<section id="ekonomka" class="rola">
+  <h2>5 · Ekonómka (rola „Ekonóm / back-office")</h2>
+
+  <h3>5.1 Čo vidíš po prihlásení</h3>
+  <p>Pristaneš na <b>Prehľade</b>: faktúry po splatnosti (upozornenie hneď hore, bez klikania), výrobné KPI, cash-flow kalendár splatných faktúr, náklad na kg zmesi a na pár v čase, marže, top materiály a <b>Exporty pre účtovníčku (CSV)</b>. V ľavom paneli máš: <b>Prehľad, Faktúry, Dodávatelia, Sklad, Kalkulácie</b>.</p>
+
+  <h3>5.2 Zaevidovať došlú faktúru</h3>
+  <ol>
+    <li><b>Faktúry</b> → <b>Nová faktúra</b>.</li>
+    <li><b>Hlavička faktúry</b>: Dodávateľ, Číslo faktúry, Dátum vystavenia, Dátum dodania, <b>Dátum splatnosti</b>, <b>Suma bez DPH (€)</b>, <b>DPH (€)</b> — suma s DPH sa dopočíta.</li>
+    <li><b>Položky (kategorizácia + stredisko)</b>: pre každú položku Popis, <b>Kategória</b> (Materiál / Energia / Služby / Investícia / Réžia), <b>Stredisko</b> (valcovňa, lisovňa, labák, správa) a Suma bez DPH. Ďalší riadok cez <b>Pridať položku</b>.</li>
+    <li>Sleduj riadok <b>Súčet položiek</b> — musí sedieť so sumou bez DPH.</li>
+    <li>Ťukni na <b>Zaevidovať faktúru</b>.</li>
+  </ol>
+  <p>Nového dodávateľa najprv založ: <b>Dodávatelia</b> → <b>Nový dodávateľ</b>.</p>
+
+  <h3>5.3 Schváliť faktúru a evidovať platby</h3>
+  <ol>
+    <li>V detaile faktúry v stave <b>Nová</b> ťukni <b>Schváliť faktúru</b>.</li>
+    <li>Platba: <b>Pridať platbu</b> → <b>Dátum platby</b>, <b>Suma (€)</b> → <b>Zaevidovať platbu</b>. Stav sa prepne na <b>Čiastočne zaplatená</b> alebo <b>Zaplatená</b>.</li>
+    <li>Splatnosti stráž filtrami: <b>Všetky / Po splatnosti / Splatné do 7 dní / 14 dní / 30 dní</b> — riadky po splatnosti sú červené.</li>
+  </ol>
+
+  <h3>5.4 Príjemka — materiál z faktúry na sklad</h3>
+  <ol>
+    <li><b>Sklad</b> → <b>Príjemky</b> → <b>Nová príjemka</b>.</li>
+    <li>Zdroj: <b>Príjem z faktúry</b> (bežný prípad) alebo <b>Počiatočný stav skladu</b>.</li>
+    <li>Pri príjme z faktúry vyber <b>Faktúru</b> a ťukni <b>Predvyplniť položky</b> — riadky sa naplnia množstvami a cenami z faktúry; <b>pre každý riadok vyber materiál</b>.</li>
+    <li>Skontroluj <b>Dátum príjmu (FIFO poradie)</b>, doplň <b>Šaržu dodávateľa</b>.</li>
+    <li>Ťukni na <b>Zaevidovať príjemku</b> → <span class="hlaska">„Príjemka zaevidovaná — šarže sú na sklade."</span> Číslo príjemky pridelí systém (P-RRRR-NNNN). Každý riadok = skladová šarža s vlastnou cenou.</li>
+  </ol>
+  <p>Nový materiál založíš cez <b>Sklad</b> → <b>Nový materiál</b> (Kód, Merná jednotka, Názov, Kategória, Min. zásoba, Predvolení dodávatelia, Poznámka).</p>
+
+  <h3>5.5 Sklad a korekcie</h3>
+  <ul>
+    <li>Karta materiálu (klik na kód): <b>Vývoj nákupnej ceny</b>, <b>Šarže (FIFO poradie čerpania)</b>.</li>
+    <li><b>Inventúrne manko</b> (tlačidlo nad šaržami) — odpis rozdielu z inventúry vo FIFO poradí, na vrub strediska.</li>
+    <li>Pri každej šarži: <b>Cenová korekcia</b> (ikona €, napr. dobropis) a <b>Inventúrna korekcia</b> (ikona váhy). Korekcie ceny v uzavretých mesiacoch sa premietnu ako korekčná položka do aktuálneho obdobia.</li>
+  </ul>
+
+  <h3>5.6 Mesačná uzávierka (Kalkulácie)</h3>
+  <ol>
+    <li><b>Kalkulácie</b> — zoznam mesiacov s réžiami z faktúr, počtom dávok a cyklov, stav <b>Otvorený / Uzavretý</b>.</li>
+    <li>Pri otvorenom mesiaci ťukni <b>Uzavrieť</b> a potvrď: <span class="hlaska">„Uzavrieť mesiac …? Réžie mesiaca … sa alokujú podľa D2 kľúčov a doklady mesiaca sa uzamknú. Otvoriť ho potom môže len admin."</span></li>
+    <li>Po uzávierke má každá dávka a artikel <b>plný náklad</b> (s réžiami); detail mesiaca ukazuje réžie a sadzby. <b>Marže artiklov</b> nájdeš pod rovnomenným tlačidlom.</li>
+  </ol>
+
+  <h3>5.7 Exporty pre účtovníčku (CSV)</h3>
+  <p>Na <b>Prehľade</b>, karta <b>Exporty pre účtovníčku (CSV)</b>: Cash-flow — nezaplatené faktúry, Marže per artikel, Náklad na kg zmesi po mesiacoch, Náklad na pár po mesiacoch, Prestoje per dôvod a stroj, Nepodarky per dôvod a stroj, Nákupné ceny surovín (top 10).</p>
+
+  <h3>5.8 Export faktúr do MRP (XML)</h3>
+  <ol>
+    <li><b>Faktúry</b> → tlačidlo <b>Export do MRP</b> (vedľa „Nová faktúra").</li>
+    <li>V dialógu <b>Export do MRP</b> skontroluj <b>Mesiac</b> (predvyplnený predchádzajúci mesiac — exportuje sa nákladový mesiac faktúry). Voliteľne zaškrtni <b>Zahrnúť aj už exportované faktúry</b>.</li>
+    <li>Ťukni na <b>Stiahnuť XML pre MRP</b> → stiahne sa súbor <code>mrp-fakturyp-RRRR-MM.xml</code>, ktorý účtovníčka naimportuje do MRP. Faktúry sa označia ako exportované — v zozname majú značku v stĺpci <b>MRP</b> (s dátumom exportu).</li>
+  </ol>
+  <p>Export odmietne: mesiac bez faktúr (<span class="hlaska">„Žiadne faktúry na export do MRP za mesiac …"</span>), faktúru so zmiešanými sadzbami DPH (rozpíš podľa sadzieb alebo zadaj do MRP ručne) a dobropisy so zápornými sumami (zadávajú sa do MRP ručne).</p>
+
+  <div class="pozor">
+    <b>Na čo si dať pozor</b>
+    <ul>
+      <li><span class="hlaska">„Faktúru najprv schváľte — platby sa evidujú na schválené doklady."</span></li>
+      <li><span class="hlaska">„Faktúra s číslom „…" od tohto dodávateľa už existuje."</span> — duplicitná evidencia.</li>
+      <li>Pri príjemke k faktúre, ktorá už príjemku má, svieti výstraha <span class="hlaska">„(už prijatá!)"</span> — skontroluj, či nejde o duplicitný príjem (čiastočné dodávky sú v poriadku).</li>
+      <li><b>Uzávierky idú chronologicky</b>: <span class="hlaska">„Najprv uzavri starší mesiac …"</span>; mesiac musí byť celý minulý: <span class="hlaska">„Mesiac … ešte neskončil — uzavrieť možno len celý minulý mesiac."</span></li>
+      <li><span class="hlaska">„Dávky bez vyrobených kg blokujú uzávierku …: V-… Dokonči ich alebo zmaž."</span> — dorieš s majstrom valcovne.</li>
+      <li><b>Uzavretý mesiac sa nedá meniť</b>: <span class="hlaska">„Mesiac … je uzavretý alebo pod hranicou poslednej uzávierky — … nemožno meniť. Opravy patria do aktuálneho obdobia (korekčná položka), reopen smie len admin."</span></li>
+    </ul>
+  </div>
+
+  <h3>5.9 Mini-FAQ</h3>
+  <dl class="faq">
+    <dt>Prečo majster hlási „Nedostatok zásoby" pri navážke?</dt>
+    <dd>Materiál nemá na sklade dosť množstva v šaržiach — chýba príjemka. Zaeviduj príjemku z faktúry.</dd>
+    <dt>Zaevidovala som platbu so zlou sumou.</dt>
+    <dd>Platby sa v aplikácii nedajú mazať — obráť sa na admina.</dd>
+    <dt>Kedy uzatvárať mesiac?</dt>
+    <dd>Po skončení mesiaca, keď sú zaevidované všetky faktúry (réžie) a výroba je kompletná. Skoršia uzávierka = réžie sa alokujú bez chýbajúcich faktúr.</dd>
+    <dt>Ako zistím, z ktorej faktúry je šarža?</dt>
+    <dd>Sklad → karta materiálu → šarža je viazaná na príjemku a príjemka na faktúru; z detailu faktúry vidíš naviazané príjemky.</dd>
+    <dt>Kde nastavím alokačné kľúče?</dt>
+    <dd><b>Kalkulácie → Nastavenia</b> vidí len admin (podiel valcovne na energiách v %). Ostatné kľúče (D2) sú pevné: valcovňa per kg zmesi, lisovňa per lisovací cyklus, labák a správa prirážkou.</dd>
+  </dl>
+</section>
+
+<!-- ══════════════════════════ 6. ADMIN ══════════════════════════ -->
+<section id="admin" class="rola">
+  <h2>6 · Administrátor / konateľ</h2>
+
+  <h3>6.1 Čo vidíš po prihlásení</h3>
+  <p>Pristaneš na <b>Prehľade</b> (plný dashboard ako ekonómka). V ľavom paneli vidíš <b>všetky moduly</b>: Prehľad, Faktúry, Dodávatelia, Sklad, Receptúry, Výroba, Labák, Lisovňa, Kalkulácie, Číselníky, Používatelia. Máš práva na všetko, čo robia ostatné roly, plus úlohy nižšie.</p>
+
+  <h3>6.2 Používatelia (/pouzivatelia)</h3>
+  <h4>Nový účet</h4>
+  <ol>
+    <li><b>Používatelia</b> → karta <b>Nový používateľ</b>.</li>
+    <li>Vyplň <b>Email</b>, <b>Meno</b>, vyber <b>Rolu</b> a zadaj <b>Dočasné heslo</b> (min. 8 znakov).</li>
+    <li>Ťukni na <b>Vytvoriť používateľa</b> — vznikne prihlasovací účet v Supabase Auth s priradenou rolou.</li>
+    <li>Dočasné heslo odovzdaj používateľovi osobne.</li>
+  </ol>
+  <h4>Správa účtov</h4>
+  <ul>
+    <li><b>Zmena roly</b>: v tabuľke <b>Účty</b> vyber novú rolu priamo v riadku → <span class="hlaska">„Rola zmenená."</span> Rola určuje moduly aj práva okamžite.</li>
+    <li><b>Deaktivovať / Aktivovať</b>: deaktivovaný účet sa nevie prihlásiť. Vlastný účet deaktivovať nemôžeš.</li>
+  </ul>
+  <h4>Zabudnuté heslo (reset)</h4>
+  <p>Aplikácia reset hesla <b>nemá</b> — ani na prihlasovacej stránke, ani v /pouzivatelia. Postup:</p>
+  <ol>
+    <li>Otvor <b>Supabase Dashboard</b> projektu → <b>Authentication → Users</b>.</li>
+    <li>Nájdi používateľa podľa emailu a nastav mu nové heslo.</li>
+    <li>Nové dočasné heslo odovzdaj používateľovi.</li>
+  </ol>
+
+  <h3>6.3 Receptúry (/receptury) — len admin</h3>
+  <ol>
+    <li><b>Nová zmes</b> → Kód zmesi, Názov, Poznámka → <b>Uložiť</b>.</li>
+    <li>Detail zmesi → <b>Nová verzia</b>: <b>Štandardná dávka (kg)</b>, <b>Položky (kg na štandardnú dávku)</b> — materiál + množstvo, <b>Technologické poznámky</b> → <b>Vytvoriť verziu</b>.</li>
+    <li>Verziu zapni tlačidlom <b>Aktivovať verziu N</b> — dávky valcovne sa zakladajú <b>vždy z aktívnej verzie (★)</b>; každá dávka si pamätá, z ktorej verzie vznikla. Úprava receptu = nová verzia.</li>
+    <li>Detail verzie ukazuje <b>živú teoretickú kalkuláciu</b> — materiálovú cenu dávky podľa aktuálnych skladových cien.</li>
+    <li><b>Limity labáku (QC)</b> — dole na detaile zmesi: pre každý parameter zadaj <b>Min</b> / <b>Max</b> → <b>Uložiť</b> (per riadok). Prázdne obe polia = limit sa zruší. <b>Bez definovaných limitov sa dávky tejto zmesi nedajú merať v labáku</b> — nastav ich pred prvou výrobou.</li>
+  </ol>
+
+  <h3>6.4 Číselníky (/ciselniky) — len admin</h3>
+  <ul>
+    <li><b>Stroje</b>: <b>Nový stroj</b> — Kód, Názov, <b>Stredisko</b> (valcovňa/lisovňa). Stroje lisovne sa ponúkajú vo výkonoch lisov, stroje valcovne pri dávkach.</li>
+    <li><b>Pracovníci</b>: <b>Nový pracovník</b> (Meno) a <b>sadzby</b>: dialóg <b>Sadzby — meno</b> → <b>Sadzba (€/hod)</b> + <b>Platná od</b> — použije sa pri výpočte nákladu práce (nejde o mzdový systém).</li>
+  </ul>
+  <p>Dôvody prestojov a nepodarkov sú prednastavené číselníky — v UI sa nespravujú.</p>
+
+  <h3>6.5 Artikle (Lisovňa → Artikle) — mutácie len admin</h3>
+  <p><b>Nový artikel</b>: <b>Kód</b>, <b>Model podošvy</b>, <b>Zmes</b>, <b>Norma spotreby zmesi (kg/pár)</b>, <b>Cieľový čas cyklu (s)</b>, <b>Predajná cena (€/pár)</b> — z nej sa počíta marža. Majster lisovne katalóg len číta.</p>
+
+  <h3>6.6 Kalkulácie — nastavenia a reopen — len admin</h3>
+  <ul>
+    <li><b>Kalkulácie → Nastavenia</b>: <b>Podiel valcovne na energiách (%)</b> → <b>Uložiť pomer</b> (lisovňa dostane zvyšok; nový pomer platí pre budúce uzávierky).</li>
+    <li><b>Reopen mesiaca</b>: detail uzavretého mesiaca → <b>Otvoriť mesiac (reopen)</b> — sadzby a alokácie prestanú platiť, doklady sa odomknú; po opravách treba mesiac uzavrieť znova (spraví ekonómka).</li>
+  </ul>
+
+  <div class="pozor">
+    <b>Na čo si dať pozor</b>
+    <ul>
+      <li><b>Poradie pri nábehu</b>: dodávatelia a materiály → faktúry a príjemky → zmesi + verzie receptov + <b>limity labáku</b> → stroje, pracovníci a sadzby → artikle → potom môže dielňa zapisovať.</li>
+      <li>Zmena roly platí okamžite — používateľ uvidí iné moduly po najbližšom načítaní stránky.</li>
+      <li>Reopen mesiaca ruší alokácie — používaj len na opravy, po ktorých sa mesiac hneď znovu uzavrie.</li>
+      <li>Predajné ceny artiklov a marže vidí len admin a ekonóm (majstri nie).</li>
+      <li>Receptúry a limity meň cez <b>novú verziu</b> / úpravu limitov — nikdy nie „narýchlo" počas rozpracovanej dávky.</li>
+    </ul>
+  </div>
+
+  <h3>6.7 Mini-FAQ</h3>
+  <dl class="faq">
+    <dt>Používateľ si zabudol heslo.</dt>
+    <dd>Reset v Supabase Dashboard (Authentication → Users) — aplikácia ho nevie.</dd>
+    <dt>Majster valcovne nevidí zmes pri zakladaní dávky.</dt>
+    <dd>Zmes nemá aktívnu verziu receptu — Receptúry → detail zmesi → <b>Aktivovať verziu N</b>.</dd>
+    <dt>Laborant hlási „Zmes nemá definované limity labáku."</dt>
+    <dd>Receptúry → detail zmesi → <b>Limity labáku (QC)</b> → vyplň Min/Max a <b>Uložiť</b>.</dd>
+    <dt>Treba opraviť doklad v uzavretom mesiaci.</dt>
+    <dd>Preferuj korekčnú položku v aktuálnom období (napr. oprava ceny šarže). Reopen je krajný prípad.</dd>
+    <dt>Ako pridám nový lis?</dt>
+    <dd>Číselníky → <b>Nový stroj</b>, stredisko <b>lisovňa</b> — hneď sa ponúka vo formulári „Nový výkon".</dd>
+  </dl>
+</section>
+
+<footer class="doc">
+  <p>Zdroj manuálu: <code>docs/prirucka/*.md</code> a <code>public/manual.html</code> v repozitári <code>bamipa_mes</code>. Pri každej zmene logiky aplikácie sa manuál aktualizuje spolu so zmenou (pravidlo v CLAUDE.md). Stav zodpovedá aplikácii k 17.&nbsp;7.&nbsp;2026.</p>
+</footer>
+
+</div>
+</body>
+</html>

@@ -5,3 +5,4 @@
 - Migrácie NIKDY nemazať/neprepisovať, len pridávať nové. Žiadny drop DB.
 - Pred každým väčším feature: najprv plán, čakaj na schválenie.
 - Kalkulačná logika (M7) len cez TDD — testy pred implementáciou.
+- MANUAL for BAMIPA_MES: používateľská príručka = docs/prirucka/*.md (zdroj per rola) + public/manual.html (stránka /manual.html, za loginom). Pri KAŽDEJ zmene logiky alebo UI (tlačidlá, polia, hlášky, toky, RBAC, nové moduly) aktualizuj OBOJE v tom istom commite — kroky popíš presne podľa kódu, nič si nevymýšľaj.

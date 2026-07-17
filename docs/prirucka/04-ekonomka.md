@@ -48,6 +48,14 @@ Nový materiál založíš cez **Sklad** → **Nový materiál** (Kód, Merná j
 
 Na **Prehľade**, karta **Exporty pre účtovníčku (CSV)**: Cash-flow — nezaplatené faktúry, Marže per artikel, Náklad na kg zmesi po mesiacoch, Náklad na pár po mesiacoch, Prestoje, Nepodarky, Nákupné ceny surovín (top 10).
 
+### 7. Export faktúr do MRP (XML)
+
+1. **Faktúry** → tlačidlo **Export do MRP** (vedľa „Nová faktúra").
+2. V dialógu **Export do MRP** skontroluj **Mesiac** (predvyplnený predchádzajúci mesiac — exportuje sa nákladový mesiac faktúry). Voliteľne zaškrtni **Zahrnúť aj už exportované faktúry**.
+3. Ťukni na **Stiahnuť XML pre MRP** → stiahne sa súbor `mrp-fakturyp-RRRR-MM.xml`, ktorý účtovníčka naimportuje do MRP. Faktúry sa označia ako exportované — v zozname majú značku v stĺpci **MRP** (s dátumom exportu).
+
+Export odmietne: mesiac bez faktúr (*„Žiadne faktúry na export do MRP za mesiac …"*), faktúru so zmiešanými sadzbami DPH (*„… nezodpovedá jednej sadzbe (23/19/5 %) … Rozpíš faktúru podľa sadzieb alebo ju zadaj do MRP ručne."*) a dobropisy so zápornými sumami (zadávajú sa do MRP ručne).
+
 ## Na čo si dať pozor
 
 - *„Faktúru najprv schváľte — platby sa evidujú na schválené doklady."*

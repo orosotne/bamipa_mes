@@ -1,3 +1,4 @@
+import { HelpCircle } from "lucide-react";
 import { AppNav } from "@/components/app-nav";
 import { LogoutButton } from "@/components/logout-button";
 import { db } from "@/db";
@@ -28,6 +29,15 @@ export default async function AppLayout({
         </div>
         <AppNav role={user.role} />
         <div className="mt-auto border-t pt-4">
+          <a
+            href="/manual.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mb-3 flex w-full items-center justify-start gap-2 rounded-lg bg-orange-500 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-600"
+          >
+            <HelpCircle className="h-4 w-4" />
+            Manuál
+          </a>
           <div className="px-3 pb-2">
             <div className="truncate text-sm font-medium">{user.displayName}</div>
             <div className="text-xs text-muted-foreground">{ROLY[user.role]}</div>

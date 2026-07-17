@@ -15,7 +15,7 @@ Možné hlášky:
 
 Po prihlásení pristaneš na **Prehľade** (dashboard) — výnimkou je **Laborant**, ktorého systém presmeruje rovno do **Labáku**. Majstri vidia na Prehľade výrobné KPI, prestoje a nepodarky; admin a ekonóm aj financie (cash-flow, náklady, marže).
 
-Vľavo je bočný panel s navigáciou — vidíš v ňom len moduly, na ktoré má tvoja rola právo. Úplne dole v paneli je tvoje meno, rola a tlačidlo **Odhlásiť**.
+Vľavo je bočný panel s navigáciou — vidíš v ňom len moduly, na ktoré má tvoja rola právo. Úplne dole v paneli je oranžové tlačidlo **Manuál** (s ikonou otáznika ?), pod ním tvoje meno, rola a tlačidlo **Odhlásiť**. Tlačidlo **Manuál** otvorí túto používateľskú príručku v novej karte prehliadača.
 
 ## 2. Odhlásenie
 

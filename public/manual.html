@@ -312,9 +312,22 @@
     <li>Skontroluj <b>Dátum expedície</b> a <b>Odberateľa</b> (predvyplnené <b>LOWA</b>).</li>
     <li>V <b>Položkách</b> vyber <b>Výrobný príkaz</b> (vidíš, koľko má voľných párov) a zadaj <b>Páry</b>; ďalšie riadky cez <b>+ Pridať položku</b>.</li>
     <li>Ťukni na <b>Vytvoriť dodací list</b> — systém pridelí číslo a otvorí detail.</li>
-    <li>V detaile dodacieho listu je tlačidlo <b>Traceability report</b> — tlačová zostava pre odberateľa (bez cien a receptúr). Vytlačíš ju tlačidlom <b>Tlačiť</b>.</li>
+    <li>V detaile dodacieho listu je tlačidlo <b>Traceability report</b> — tlačová zostava pre odberateľa (podrobný postup v 4.7).</li>
     <li>Omylom vytvorený dodací list stornuješ tlačidlom <b>Stornovať DL</b> — páry sa vrátia na sklad hotových výrobkov.</li>
   </ol>
+
+  <h3>4.7 Traceability report pre odberateľa</h3>
+  <p>Tlačová zostava k dodaciemu listu — doklad pôvodu pre odberateľa (dodávka → výrobný príkaz → dávka zmesi → šarže surovín).</p>
+  <ol>
+    <li>V detaile dodacieho listu ťukni hore na <b>Traceability report</b>.</li>
+    <li>Otvorí sa tlačová stránka <b>Traceability report — číslo DL</b> (formát A4). Ťukni na <b>Tlačiť</b> — vytlačíš priamo z prehliadača, prípadne uložíš ako PDF. Šípkou vľavo hore sa vrátiš na dodací list.</li>
+  </ol>
+  <p>Report má hlavičku (Dodací list, Dátum expedície, Odberateľ, Vygenerované) a dve časti:</p>
+  <ul>
+    <li><b>Položky a výroba</b> — pri každej položke artikel, výrobný príkaz a expedované páry; pod tým výkony lisovne v tabuľke <b>Lis, Dátum, Zmena, Vyrobené páry, Dávka zmesi</b>.</li>
+    <li><b>Dávky zmesí a kontrola kvality</b> — pri každej použitej dávke zmes, dátum výroby a <b>verdikt labáku</b> (kedy a kto podpísal); tabuľka meraní <b>Parameter, Hodnota, Jednotka, Limit, V limite</b> (limity platné v čase skúšky) a tabuľka šarží surovín <b>Materiál, Šarža dodávateľa, Príjemka, Dodávateľ, Dátum príjmu</b>.</li>
+  </ul>
+  <p>Report je externý dokument — <b>zámerne neobsahuje ceny ani množstvá surovín</b> (receptúra je know-how firmy).</p>
 
   <div class="pozor">
     <b>Na čo si dať pozor</b>
@@ -328,7 +341,7 @@
     </ul>
   </div>
 
-  <h3>4.7 Mini-FAQ</h3>
+  <h3>4.8 Mini-FAQ</h3>
   <dl class="faq">
     <dt>Prečo v „Dávka zmesi (len schválené)" nevidím dávku, ktorá je hotová?</dt>
     <dd>Buď ešte nemá verdikt SCHVÁLENÉ od labáku, alebo už nemá zostatok kg, alebo je z inej zmesi, než vyžaduje artikel príkazu.</dd>

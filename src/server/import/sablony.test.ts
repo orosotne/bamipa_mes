@@ -12,6 +12,14 @@ import { importujMaterialy } from "./materialy";
 import { importujReceptury } from "./receptury";
 
 const SABLONY = path.resolve(import.meta.dirname, "../../../docs/import-sablony");
+const PUBLIC_SABLONY = path.resolve(import.meta.dirname, "../../../public/sablony");
+
+const SUBORY = [
+  "1-dodavatelia.csv",
+  "2-materialy.csv",
+  "3-receptury.csv",
+  "4-artikle.csv",
+] as const;
 
 function sablona(nazov: string): string {
   return readFileSync(path.join(SABLONY, nazov), "utf8");
@@ -72,6 +80,17 @@ describe("šablóny docs/import-sablony", () => {
     expect(
       artikle.find((a) => a.code === "TREK-02")?.targetCycleSeconds,
     ).toBeNull();
+  });
+
+  test("public/sablony na stiahnutie sú byte-identické s docs/ (drift-guard)", () => {
+    // Stránka /ciselniky/sablony servuje public/sablony/*.csv; docs/ sú testom
+    // overený zdroj pravdy — nesmú sa rozísť (inak by kolega stiahol iné, než
+    // čo import očakáva).
+    for (const subor of SUBORY) {
+      const docs = readFileSync(path.join(SABLONY, subor), "utf8");
+      const verejne = readFileSync(path.join(PUBLIC_SABLONY, subor), "utf8");
+      expect(verejne).toBe(docs);
+    }
   });
 
   test("opakovaný import v režime len_nove je idempotentný", async () => {

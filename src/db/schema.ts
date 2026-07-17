@@ -168,18 +168,30 @@ export const costCenters = pgTable(
   ],
 );
 
-export const suppliers = pgTable("suppliers", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
-  ico: text("ico"),
-  dic: text("dic"),
-  icDph: text("ic_dph"),
-  address: text("address"),
-  email: text("email"),
-  phone: text("phone"),
-  note: text("note"),
-  ...audit(),
-});
+export const suppliers = pgTable(
+  "suppliers",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+    ico: text("ico"),
+    dic: text("dic"),
+    icDph: text("ic_dph"),
+    address: text("address"),
+    email: text("email"),
+    phone: text("phone"),
+    note: text("note"),
+    ...audit(),
+  },
+  (t) => [
+    // Kľúče zhodné s D10 importom: IČO, inak názov (case/trim-insensitive).
+    uniqueIndex("suppliers_ico_uq")
+      .on(t.ico)
+      .where(sql`deleted_at IS NULL AND ico IS NOT NULL AND ico <> ''`),
+    uniqueIndex("suppliers_name_uq")
+      .on(sql`lower(trim("name"))`)
+      .where(sql`deleted_at IS NULL`),
+  ],
+);
 
 export const machines = pgTable(
   "machines",

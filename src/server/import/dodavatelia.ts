@@ -1,9 +1,9 @@
-// D10 import dodávateľov. Suppliers nemajú kód ani unique — kľúč zhody:
-// IČO (ak je vyplnené), inak názov (trim, case-insensitive). Zápis cez
-// existujúce služby (audit per záznam zadarmo); celý import = 1 transakcia.
-// Známy limit (review): bez unique indexu môžu DVA SÚBEŽNÉ importy vytvoriť
-// duplicitného dodávateľa — rovnaká rasa existuje aj v bežnom UI dodávateľov,
-// import ju nezhoršuje (admin-only, zriedkavá operácia).
+// D10 import dodávateľov. Suppliers nemajú kód — kľúč zhody: IČO (ak je
+// vyplnené), inak názov (trim, case-insensitive). Zápis cez existujúce služby
+// (audit per záznam zadarmo); celý import = 1 transakcia. Súbežné importy /
+// ručné vytvorenie chráni unique index 0009 (suppliers_ico_uq, suppliers_name_uq
+// na lower(trim(name)) — zhodný s in-file dedupom); 23505 → doménová hláška
+// v createSupplier/updateSupplier.
 import { isNull } from "drizzle-orm";
 import type { DbClient } from "@/db";
 import * as schema from "@/db/schema";

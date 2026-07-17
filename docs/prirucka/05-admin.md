@@ -41,12 +41,23 @@ Aplikácia reset hesla **nemá** — ani na prihlasovacej stránke, ani v /pouzi
 
 Dôvody prestojov a nepodarkov sú prednastavené číselníky — v UI sa nespravujú.
 
+### Šablóny na import (fialové tlačidlo v paneli, /ciselniky/sablony)
+
+Úplne dole v ľavom paneli máš **fialové tlačidlo „Šablóny na import"** (vidí ho
+len admin, je nad oranžovým **Manuál**). Otvorí prehľadnú stránku, kde pri
+každej zo 4 šablón (Dodávatelia, Materiály, Receptúry zmesí, Artikle podošiev)
+vidíš, na čo je, aké má stĺpce (povinné/voliteľné) a tlačidlo **Stiahnuť**.
+Šablónu otvor v Exceli, doplň dáta, ulož ako **CSV UTF-8 (oddelený čiarkami)**
+a nahraj cez **Import CSV**.
+
 ### Import CSV (Číselníky → Import CSV, /ciselniky/import)
 
-Hromadné naplnenie číselníkov zo súborov (nábeh systému). Šablóny s návodom
-pre prípravu v Exceli sú v repozitári v `docs/import-sablony/` (README:
-uložiť ako **CSV UTF-8**, desatinné čiarky, systém zvláda bodkočiarku aj
-čiarku ako oddeľovač).
+Hromadné naplnenie číselníkov zo súborov (nábeh systému). Šablóny stiahni cez
+fialové tlačidlo **Šablóny na import** (viď vyššie); rovnaké súbory s návodom
+sú aj v repozitári v `docs/import-sablony/`. Ulož ako **CSV UTF-8**, desatinné
+čiarky; systém zvláda bodkočiarku aj čiarku ako oddeľovač a rozpozná aj
+bežné **Windows kódovanie** (ak by bol súbor v úplne inom kódovaní, import
+poradí uložiť ho ako CSV UTF-8).
 
 1. Vyber **Typ číselníka** — importuj v poradí **1 — Dodávatelia →
    2 — Materiály → 3 — Receptúry zmesí → 4 — Artikle podošiev** (súbory sa

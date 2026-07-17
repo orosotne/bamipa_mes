@@ -10,6 +10,7 @@ import { naVysledok } from "@/server/action-utils";
 import { importujArtikle } from "@/server/import/artikle";
 import type { ImportChyba } from "@/server/import/csv";
 import { importujDodavatelov } from "@/server/import/dodavatelia";
+import { dekodujCsv, maZlomeneKodovanie } from "@/server/import/kodovanie";
 import { importujMaterialy } from "@/server/import/materialy";
 import { importujReceptury } from "@/server/import/receptury";
 import type { ImportPrehlad } from "@/server/import/typy";
@@ -65,14 +66,18 @@ export async function importCsvAction(
       };
     }
 
-    // Blob.text() dekóduje vždy UTF-8 — Windows-1250 export z Excelu by ticho
-    // doniesol mojibake (U+FFFD namiesto diakritiky). Radšej zrozumiteľná chyba.
-    const text = await subor.text();
-    if (text.includes("�")) {
+    // Blob.text() dekóduje vždy UTF-8 — Excel „CSV (oddelený čiarkami)" je na
+    // slovenskom Windowse Windows-1250. dekodujCsv autodetekuje a diakritiku
+    // prevedie namiesto tichej mojibake (nález review D10).
+    const text = dekodujCsv(new Uint8Array(await subor.arrayBuffer()));
+    // Ani cp1250 nedá zmysluplný text pri UTF-16 (NUL medzi znakmi) či inom
+    // 8-bit kódovaní (C1 riadiace znaky) — radšej zrozumiteľná hláška než
+    // tichá korupcia (nález review 2. vlny).
+    if (maZlomeneKodovanie(text)) {
       return {
         ok: false,
         error:
-          "Súbor nie je v kódovaní UTF-8 — v Exceli použi „Uložiť ako → CSV UTF-8 (oddelený čiarkami)“ a nahraj ho znova.",
+          "Súbor nie je v CSV UTF-8 ani v bežnom Windows kódovaní — v Exceli použi „Uložiť ako → CSV UTF-8 (oddelený čiarkami)“ a nahraj ho znova.",
       };
     }
 

@@ -486,8 +486,11 @@
   </ul>
   <p>Dôvody prestojov a nepodarkov sú prednastavené číselníky — v UI sa nespravujú.</p>
 
+  <h4>Šablóny na import (fialové tlačidlo v paneli, /ciselniky/sablony)</h4>
+  <p>Úplne dole v ľavom paneli je <b>fialové tlačidlo „Šablóny na import"</b> (vidí ho len admin, je nad oranžovým <b>Manuál</b>). Otvorí prehľadnú stránku, kde pri každej zo 4 šablón (Dodávatelia, Materiály, Receptúry zmesí, Artikle podošiev) vidíš, na čo je, aké má stĺpce (povinné/voliteľné) a tlačidlo <b>Stiahnuť</b>. Šablónu otvor v Exceli, doplň dáta, ulož ako <b>CSV UTF-8 (oddelený čiarkami)</b> a nahraj cez Import CSV.</p>
+
   <h4>Import CSV (Číselníky → Import CSV, /ciselniky/import)</h4>
-  <p>Hromadné naplnenie číselníkov zo súborov (nábeh systému). Šablóny s návodom pre Excel sú v repozitári v <code>docs/import-sablony/</code> (uložiť ako <b>CSV UTF-8</b>, desatinné čiarky, bodkočiarka aj čiarka ako oddeľovač).</p>
+  <p>Hromadné naplnenie číselníkov zo súborov (nábeh systému). Šablóny stiahni cez fialové tlačidlo <b>Šablóny na import</b>; rovnaké súbory s návodom sú aj v repozitári v <code>docs/import-sablony/</code>. Ulož ako <b>CSV UTF-8</b>, desatinné čiarky; systém zvláda bodkočiarku aj čiarku ako oddeľovač a rozpozná aj bežné <b>Windows kódovanie</b>.</p>
   <ol>
     <li>Vyber <b>Typ číselníka</b> — importuj v poradí <b>1 — Dodávatelia → 2 — Materiály → 3 — Receptúry zmesí → 4 — Artikle podošiev</b> (súbory sa na seba odkazujú kódmi).</li>
     <li>Vyber <b>CSV súbor</b>. Checkbox <b>„Aktualizovať existujúce záznamy"</b> nechaj vypnutý, ak sa existujúce majú preskočiť (predvolené).</li>

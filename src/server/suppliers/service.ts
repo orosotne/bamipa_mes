@@ -3,6 +3,7 @@
 import { and, asc, eq, isNull } from "drizzle-orm";
 import type { DbClient } from "@/db";
 import * as schema from "@/db/schema";
+import { sqlState } from "@/server/action-utils";
 
 export type SupplierPolia = {
   name: string;
@@ -21,6 +22,14 @@ function validujNazov(name: string): string {
     throw new Error("Názov dodávateľa nesmie byť prázdny.");
   }
   return trimmed;
+}
+
+/** Unique indexy 0009 (názov case/trim-insensitive, IČO) → doménová hláška. */
+function prelozDuplicitu(e: unknown): never {
+  if (sqlState(e) === "23505") {
+    throw new Error("Dodávateľ s týmto názvom alebo IČO už existuje.");
+  }
+  throw e;
 }
 
 export async function createSupplier(
@@ -54,7 +63,7 @@ export async function createSupplier(
     });
 
     return dodavatel;
-  });
+  }).catch(prelozDuplicitu);
 }
 
 export async function updateSupplier(
@@ -96,7 +105,7 @@ export async function updateSupplier(
     });
 
     return upraveny;
-  });
+  }).catch(prelozDuplicitu);
 }
 
 /** Guard z návrhu: dodávateľa s faktúrami nemožno zmazať. */

@@ -2,6 +2,10 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { beforeEach, describe, expect, test } from "vitest";
 import * as schema from "@/db/schema";
+import {
+  createSupplier,
+  softDeleteSupplier,
+} from "@/server/suppliers/service";
 import { createTestDb, seedZaklad, type TestDb } from "@/test/pglite";
 import { importujDodavatelov } from "./dodavatelia";
 
@@ -177,6 +181,40 @@ describe("importujDodavatelov — validácie", () => {
 
     expect(chyby.length).toBeGreaterThan(0);
     expect(chyby[0].riadok).toBe(1);
+  });
+
+  test("unique index: duplicitný názov (case/trim variant) → slovenská chyba", async () => {
+    await createSupplier(db, { userId: zaklad.adminId, name: "Gumex SK" });
+
+    await expect(
+      createSupplier(db, { userId: zaklad.adminId, name: "  gumex sk " }),
+    ).rejects.toThrow(/už existuje/);
+  });
+
+  test("unique index: duplicitné IČO pri inom názve → slovenská chyba", async () => {
+    await createSupplier(db, {
+      userId: zaklad.adminId,
+      name: "Firma A",
+      ico: "11223344",
+    });
+
+    await expect(
+      createSupplier(db, {
+        userId: zaklad.adminId,
+        name: "Firma B",
+        ico: "11223344",
+      }),
+    ).rejects.toThrow(/už existuje/);
+  });
+
+  test("unique index: viac dodávateľov bez IČO je v poriadku, zmazaný uvoľní názov", async () => {
+    const a = await createSupplier(db, { userId: zaklad.adminId, name: "Bez ICO 1" });
+    await createSupplier(db, { userId: zaklad.adminId, name: "Bez ICO 2" });
+
+    await softDeleteSupplier(db, { userId: zaklad.adminId, id: a.id });
+    await expect(
+      createSupplier(db, { userId: zaklad.adminId, name: "Bez ICO 1" }),
+    ).resolves.toBeTruthy();
   });
 
   test("dva riadky trafia ten istý DB záznam cez rôzne kľúče → chyba + rollback", async () => {

@@ -54,6 +54,7 @@
 - Odhad: 1 admin/konateľ, 1 ekonóm, 1–2 majstri valcovne, 1–2 majstri lisovne, 1 laborant (≈ 5–7 účtov).
 - **[DOPLNIŤ presné počty pred Krokom 3 — Auth.]**
 
-## D10 — Migrácia existujúcich dát · ⏳ PENDING
-- **[DOPLNIŤ: zoznam existujúcich súborov — recepty, zoznam materiálov, dodávatelia, artikle (Excel/papier?).]**
-- Ak existujú v Exceli → v Kroku 2 pripraviť CSV importy namiesto ručného zadávania; seed dáta stavať z reálnych receptov.
+## D10 — Migrácia existujúcich dát · ⏳ PENDING (nástroj hotový, čaká na súbory)
+- **Nástroj HOTOVÝ a v prode (1b537ae):** CSV importy 4 číselníkov na `/ciselniky/import` (admin) — dodávatelia, materiály, receptúry, artikle. Dvojkrok Skontrolovať → Importovať, dry-run = ostrý beh v transakcii s rollbackom, režimy „len nové“/„aktualizovať“, audit_log per import. Šablóny + návod pre kolegu: `docs/import-sablony/` (CSV UTF-8; systém autodetekuje aj Windows-1250 a `;`/`,`).
+- **Čaká sa na reálne súbory od kolegu** — po dodaní sa Excely len namapujú na hotové šablóny (premenovať/zoradiť stĺpce, skontrolovať MJ a kódy) a naimportujú v poradí dodávatelia → materiály → receptúry → artikle. Rozhodnutie sa uzavrie (⏳→✅) až vtedy.
+- **[DOPLNIŤ po dodaní: reálny zoznam existujúcich súborov — recepty, materiály, dodávatelia, artikle (Excel/papier?).]**

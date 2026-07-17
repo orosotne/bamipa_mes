@@ -473,6 +473,16 @@
   </ul>
   <p>Dôvody prestojov a nepodarkov sú prednastavené číselníky — v UI sa nespravujú.</p>
 
+  <h4>Import CSV (Číselníky → Import CSV, /ciselniky/import)</h4>
+  <p>Hromadné naplnenie číselníkov zo súborov (nábeh systému). Šablóny s návodom pre Excel sú v repozitári v <code>docs/import-sablony/</code> (uložiť ako <b>CSV UTF-8</b>, desatinné čiarky, bodkočiarka aj čiarka ako oddeľovač).</p>
+  <ol>
+    <li>Vyber <b>Typ číselníka</b> — importuj v poradí <b>1 — Dodávatelia → 2 — Materiály → 3 — Receptúry zmesí → 4 — Artikle podošiev</b> (súbory sa na seba odkazujú kódmi).</li>
+    <li>Vyber <b>CSV súbor</b>. Checkbox <b>„Aktualizovať existujúce záznamy"</b> nechaj vypnutý, ak sa existujúce majú preskočiť (predvolené).</li>
+    <li><b>Skontrolovať</b> — nič sa nezapíše; pri chybách tabuľka <b>Riadok / Stĺpec / Chyba</b> (oprav v Exceli, nahraj znova), inak počty <i>X nových / Y aktualizovaných / Z preskočených</i>.</li>
+    <li><b>Importovať</b> (objaví sa až po kontrole bez chýb) → <i>„Import dokončený"</i> s počtami.</li>
+  </ol>
+  <p>Zhoda existujúcich: materiály, zmesi a artikle <b>podľa kódu</b>; dodávatelia <b>podľa IČO</b>, bez IČO podľa názvu. Aktualizácia prepíše len vyplnené políčka (prázdne nič nemaže); receptúram vzniká <b>nová verzia</b>. Celý import je jedna transakcia — pri chybe sa nezapíše nič; každý import má záznam v audit logu.</p>
+
   <h3>6.5 Artikle (Lisovňa → Artikle) — mutácie len admin</h3>
   <p><b>Nový artikel</b>: <b>Kód</b>, <b>Model podošvy</b>, <b>Zmes</b>, <b>Norma spotreby zmesi (kg/pár)</b>, <b>Cieľový čas cyklu (s)</b>, <b>Predajná cena (€/pár)</b> — z nej sa počíta marža. Majster lisovne katalóg len číta.</p>
 

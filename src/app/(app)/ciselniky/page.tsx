@@ -1,5 +1,6 @@
 import { asc, eq, isNull } from "drizzle-orm";
-import { CircleDollarSign, Pencil, Plus, Trash2 } from "lucide-react";
+import { CircleDollarSign, Pencil, Plus, Trash2, Upload } from "lucide-react";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -64,11 +65,20 @@ export default async function CiselnikyPage() {
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Číselníky</h1>
-        <p className="text-sm text-muted-foreground">
-          Stroje a pracovníci pre výrobné dávky valcovne (M4).
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Číselníky</h1>
+          <p className="text-sm text-muted-foreground">
+            Stroje a pracovníci pre výrobné dávky valcovne (M4).
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          nativeButton={false}
+          render={<Link href="/ciselniky/import" />}
+        >
+          <Upload className="h-4 w-4" /> Import CSV
+        </Button>
       </div>
 
       <section>

@@ -41,6 +41,30 @@ Aplikácia reset hesla **nemá** — ani na prihlasovacej stránke, ani v /pouzi
 
 Dôvody prestojov a nepodarkov sú prednastavené číselníky — v UI sa nespravujú.
 
+### Import CSV (Číselníky → Import CSV, /ciselniky/import)
+
+Hromadné naplnenie číselníkov zo súborov (nábeh systému). Šablóny s návodom
+pre prípravu v Exceli sú v repozitári v `docs/import-sablony/` (README:
+uložiť ako **CSV UTF-8**, desatinné čiarky, systém zvláda bodkočiarku aj
+čiarku ako oddeľovač).
+
+1. Vyber **Typ číselníka** — importuj v poradí **1 — Dodávatelia →
+   2 — Materiály → 3 — Receptúry zmesí → 4 — Artikle podošiev** (súbory sa
+   na seba odkazujú kódmi).
+2. Vyber **CSV súbor**. Checkbox **„Aktualizovať existujúce záznamy"** nechaj
+   vypnutý, ak sa existujúce záznamy majú preskočiť (predvolené).
+3. **Skontrolovať** — nič sa nezapíše; pri chybách sa ukáže tabuľka
+   **Riadok / Stĺpec / Chyba** (oprav súbor v Exceli a nahraj znova), pri
+   kontrole bez chýb počty *X nových / Y aktualizovaných / Z preskočených*.
+4. **Importovať** (tlačidlo sa objaví až po kontrole bez chýb) → *„Import
+   dokončený"* s počtami.
+
+Ako sa spoznajú existujúce záznamy: materiály, zmesi a artikle **podľa kódu**;
+dodávatelia **podľa IČO**, bez IČO podľa názvu. Pri aktualizácii sa prepíšu
+len vyplnené políčka (prázdne nič nemaže); receptúram vzniká **nová verzia**
+(staré verzie a dávky ostávajú nedotknuté). Celý import je jedna transakcia —
+pri chybe sa nezapíše nič; každý import má záznam v audit logu.
+
 ## 4. Artikle (Lisovňa → Artikle) — mutácie len admin
 
 **Nový artikel**: **Kód**, **Model podošvy**, **Zmes**, **Norma spotreby zmesi (kg/pár)**, **Cieľový čas cyklu (s)**, **Predajná cena (€/pár)** — z nej sa počíta marža. Majster lisovne katalóg len číta.

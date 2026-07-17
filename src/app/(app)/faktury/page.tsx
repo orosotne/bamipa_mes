@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { FileDown, Plus } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +14,7 @@ import { formatCentsToEur, formatDatum } from "@/lib/format";
 import { zoznamFaktur, type FilterFaktur } from "@/server/invoices/service";
 import { dnesnyDatum } from "@/server/session";
 import { cn } from "@/lib/utils";
+import { MrpExportDialog } from "./mrp-export-dialog";
 import { StatusBadge } from "./status-badge";
 
 export const dynamic = "force-dynamic";
@@ -46,9 +47,19 @@ export default async function FakturyPage({
             Záväzky a cash-flow — každé euro vstupujúce do firmy.
           </p>
         </div>
-        <Button nativeButton={false} render={<Link href="/faktury/nova" />}>
-          <Plus className="h-4 w-4" /> Nová faktúra
-        </Button>
+        <div className="flex gap-2">
+          <MrpExportDialog
+            dnes={dnes}
+            trigger={
+              <Button variant="outline">
+                <FileDown className="h-4 w-4" /> Export do MRP
+              </Button>
+            }
+          />
+          <Button nativeButton={false} render={<Link href="/faktury/nova" />}>
+            <Plus className="h-4 w-4" /> Nová faktúra
+          </Button>
+        </div>
       </div>
 
       <div className="mb-4 flex flex-wrap gap-2">
@@ -86,6 +97,7 @@ export default async function FakturyPage({
                 <TableHead className="text-right">Suma s DPH</TableHead>
                 <TableHead className="text-right">Zostatok</TableHead>
                 <TableHead>Stav</TableHead>
+                <TableHead className="w-12 text-center">MRP</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -118,6 +130,18 @@ export default async function FakturyPage({
                     </TableCell>
                     <TableCell>
                       <StatusBadge stav={f.status} />
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {f.mrpExportedAt && (
+                        <span
+                          title={`Exportované do MRP ${f.mrpExportedAt.toLocaleDateString(
+                            "sk-SK",
+                            { timeZone: "Europe/Bratislava" },
+                          )}`}
+                        >
+                          ✓
+                        </span>
+                      )}
                     </TableCell>
                   </TableRow>
                 );

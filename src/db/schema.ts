@@ -262,6 +262,8 @@ export const invoices = pgTable(
     status: invoiceStatus("status").notNull().default("nova"),
     attachmentPath: text("attachment_path"), // Supabase Storage (PDF/foto)
     note: text("note"),
+    // F3: kedy bola faktúra naposledy vyexportovaná do MRP (NULL = nikdy).
+    mrpExportedAt: timestamp("mrp_exported_at", { withTimezone: true }),
     ...audit(),
   },
   (t) => [

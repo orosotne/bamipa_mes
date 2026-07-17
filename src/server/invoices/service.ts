@@ -235,6 +235,7 @@ export type RiadokZoznamuFaktur = {
   totalGrossCents: number;
   zostatokCents: number;
   status: (typeof schema.invoiceStatus.enumValues)[number];
+  mrpExportedAt: Date | null;
 };
 
 /**
@@ -274,6 +275,7 @@ export async function zoznamFaktur(
       totalGrossCents: schema.invoices.totalGrossCents,
       zostatok: zostatokSql,
       status: schema.invoices.status,
+      mrpExportedAt: schema.invoices.mrpExportedAt,
     })
     .from(schema.invoices)
     .innerJoin(
@@ -291,5 +293,6 @@ export async function zoznamFaktur(
     totalGrossCents: r.totalGrossCents,
     zostatokCents: Number(r.zostatok),
     status: r.status,
+    mrpExportedAt: r.mrpExportedAt,
   }));
 }

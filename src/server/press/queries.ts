@@ -508,3 +508,324 @@ export async function detailDodacieho(
     })),
   };
 }
+
+// ── traceability report pre odberateľa (F3) ──
+
+/**
+ * Plný reťazec pre externý report k DL: položky → výkony lisovne (stroj,
+ * dátum, zmena) → dávky zmesí → posledný verdikt labáku s meraniami voči
+ * snapshot limitom → šarže surovín (príjemka, dodávateľ, dátum príjmu).
+ * Externý dokument — tvar NESMIE obsahovať ceny, čísla faktúr, internú
+ * poznámku DL ani množstvá surovín (know-how receptúry); dodávateľ sa
+ * doťahuje cez faktúru príjemky.
+ * Zámerná nadmnožina (recall-safe): reťazec ide cez CELÝ príkaz, takže
+ * výkon zapísaný po expedícii pridá dávku aj do skôr vytlačeného reportu —
+ * bezpečnejšie než riskovať vylúčenie reálnej dávky pri oneskorenom zápise
+ * z dielne; zhodné s internou traceabilitou (detailDodacieho).
+ */
+export type TraceabilitaDodacieho = {
+  dodaci: {
+    id: string;
+    shipmentNumber: string;
+    shipDate: string;
+    customer: string;
+    // interná poznámka DL (note) tu zámerne NIE JE — externý dokument
+  };
+  polozky: {
+    orderNumber: string;
+    artikelCode: string;
+    artikelName: string;
+    qtyPairs: number;
+    vykony: {
+      machineCode: string;
+      machineName: string;
+      runDate: string;
+      shift: string;
+      pairsProduced: number;
+      batchNumber: string;
+    }[];
+  }[];
+  /** Deduplikované — dávka použitá viacerými príkazmi je tu práve raz. */
+  davky: {
+    batchNumber: string;
+    mixtureCode: string;
+    mixtureName: string;
+    productionDate: string;
+    verdikt: {
+      verdict: "schvalene" | "zamietnute";
+      verdictAt: Date;
+      verdictByName: string | null;
+    } | null;
+    merania: {
+      parameterCode: string;
+      parameterName: string;
+      unit: string | null;
+      value: string;
+      minLimit: string | null;
+      maxLimit: string | null;
+      isWithinLimits: boolean;
+    }[];
+    sarze: {
+      materialCode: string;
+      materialName: string;
+      supplierLotCode: string | null;
+      receiptNumber: string;
+      receivedAt: string;
+      supplierName: string | null;
+    }[];
+  }[];
+};
+
+export async function traceabilitaDodacieho(
+  db: DbClient,
+  id: string,
+): Promise<TraceabilitaDodacieho> {
+  const [dodaci] = await db
+    .select({
+      id: schema.shipments.id,
+      shipmentNumber: schema.shipments.shipmentNumber,
+      shipDate: schema.shipments.shipDate,
+      customer: schema.shipments.customer,
+    })
+    .from(schema.shipments)
+    .where(and(eq(schema.shipments.id, id), isNull(schema.shipments.deletedAt)));
+  if (!dodaci) throw new Error("Dodací list neexistuje.");
+
+  const items = await db
+    .select({
+      workOrderId: schema.shipmentItems.workOrderId,
+      orderNumber: schema.workOrders.orderNumber,
+      artikelCode: schema.soleModels.code,
+      artikelName: schema.soleModels.name,
+      qtyPairs: schema.shipmentItems.qtyPairs,
+    })
+    .from(schema.shipmentItems)
+    .innerJoin(
+      schema.workOrders,
+      eq(schema.workOrders.id, schema.shipmentItems.workOrderId),
+    )
+    .innerJoin(
+      schema.soleModels,
+      eq(schema.soleModels.id, schema.workOrders.soleModelId),
+    )
+    .where(
+      and(
+        eq(schema.shipmentItems.shipmentId, id),
+        isNull(schema.shipmentItems.deletedAt),
+      ),
+    )
+    .orderBy(asc(schema.workOrders.orderNumber));
+
+  const orderIds = [...new Set(items.map((i) => i.workOrderId))];
+  const vykony = orderIds.length
+    ? await db
+        .select({
+          workOrderId: schema.pressRuns.workOrderId,
+          machineCode: schema.machines.code,
+          machineName: schema.machines.name,
+          runDate: schema.pressRuns.runDate,
+          shift: schema.pressRuns.shift,
+          pairsProduced: schema.pressRuns.pairsProduced,
+          batchId: schema.pressRuns.batchId,
+          batchNumber: schema.productionBatches.batchNumber,
+        })
+        .from(schema.pressRuns)
+        .innerJoin(
+          schema.machines,
+          eq(schema.machines.id, schema.pressRuns.machineId),
+        )
+        .innerJoin(
+          schema.productionBatches,
+          eq(schema.productionBatches.id, schema.pressRuns.batchId),
+        )
+        .where(
+          and(
+            inArray(schema.pressRuns.workOrderId, orderIds),
+            isNull(schema.pressRuns.deletedAt),
+          ),
+        )
+        .orderBy(asc(schema.pressRuns.runDate), asc(schema.pressRuns.createdAt))
+    : [];
+
+  const batchIds = [...new Set(vykony.map((v) => v.batchId))];
+  const davkyHlavicky = batchIds.length
+    ? await db
+        .select({
+          batchId: schema.productionBatches.id,
+          batchNumber: schema.productionBatches.batchNumber,
+          productionDate: schema.productionBatches.productionDate,
+          mixtureCode: schema.mixtures.code,
+          mixtureName: schema.mixtures.name,
+        })
+        .from(schema.productionBatches)
+        .innerJoin(
+          schema.recipes,
+          eq(schema.recipes.id, schema.productionBatches.recipeId),
+        )
+        .innerJoin(
+          schema.mixtures,
+          eq(schema.mixtures.id, schema.recipes.mixtureId),
+        )
+        .where(inArray(schema.productionBatches.id, batchIds))
+        .orderBy(asc(schema.productionBatches.batchNumber))
+    : [];
+
+  // Verdikt = POSLEDNÝ lab test dávky (najvyššie sequence_no) — po úprave
+  // zamietnutej dávky platí nové meranie; limity zo snapshotov lab_results.
+  const testy = batchIds.length
+    ? await db
+        .select({
+          id: schema.labTests.id,
+          batchId: schema.labTests.batchId,
+          verdict: schema.labTests.verdict,
+          verdictAt: schema.labTests.verdictAt,
+          verdictByName: sql<
+            string | null
+          >`(SELECT display_name FROM users u WHERE u.id = ${schema.labTests.verdictBy})`,
+        })
+        .from(schema.labTests)
+        .where(
+          and(
+            inArray(schema.labTests.batchId, batchIds),
+            isNull(schema.labTests.deletedAt),
+          ),
+        )
+        .orderBy(asc(schema.labTests.sequenceNo))
+    : [];
+  const poslednyTest = new Map<string, (typeof testy)[number]>();
+  for (const t of testy) poslednyTest.set(t.batchId, t); // asc → posledný vyhrá
+
+  const testIds = [...poslednyTest.values()].map((t) => t.id);
+  const merania = testIds.length
+    ? await db
+        .select({
+          labTestId: schema.labResults.labTestId,
+          parameterCode: schema.labParameters.code,
+          parameterName: schema.labParameters.name,
+          unit: schema.labParameters.unit,
+          value: schema.labResults.value,
+          minLimit: schema.labResults.minLimitSnapshot,
+          maxLimit: schema.labResults.maxLimitSnapshot,
+          isWithinLimits: schema.labResults.isWithinLimits,
+        })
+        .from(schema.labResults)
+        .innerJoin(
+          schema.labParameters,
+          eq(schema.labParameters.id, schema.labResults.parameterId),
+        )
+        .where(inArray(schema.labResults.labTestId, testIds))
+        .orderBy(asc(schema.labParameters.sortOrder))
+    : [];
+
+  // Šarže s ČISTOU spotrebou dávky > 0 — storno navážky (korekcia s batch_id,
+  // kladné delta) spotrebu vracia, preto SUM namiesto výpisu vydaj pohybov.
+  const sarze = batchIds.length
+    ? await db
+        .select({
+          batchId: schema.stockMoves.batchId,
+          materialCode: schema.materials.code,
+          materialName: schema.materials.name,
+          supplierLotCode: schema.materialLots.supplierLotCode,
+          receiptNumber: schema.receipts.receiptNumber,
+          receivedAt: schema.receipts.receivedAt,
+          supplierName: schema.suppliers.name,
+        })
+        .from(schema.stockMoves)
+        .innerJoin(
+          schema.materialLots,
+          eq(schema.materialLots.id, schema.stockMoves.lotId),
+        )
+        .innerJoin(
+          schema.materials,
+          eq(schema.materials.id, schema.materialLots.materialId),
+        )
+        .innerJoin(
+          schema.receipts,
+          eq(schema.receipts.id, schema.materialLots.receiptId),
+        )
+        .leftJoin(
+          schema.invoices,
+          eq(schema.invoices.id, schema.receipts.invoiceId),
+        )
+        .leftJoin(
+          schema.suppliers,
+          eq(schema.suppliers.id, schema.invoices.supplierId),
+        )
+        .where(inArray(schema.stockMoves.batchId, batchIds))
+        .groupBy(
+          schema.stockMoves.batchId,
+          schema.materialLots.id,
+          schema.materials.code,
+          schema.materials.name,
+          schema.receipts.receiptNumber,
+          schema.receipts.receivedAt,
+          schema.suppliers.name,
+        )
+        .having(sql`sum(${schema.stockMoves.qtyDelta}) < 0`)
+        // FIFO poradie zo schémy: received_at, receipt_number, line_no.
+        .orderBy(
+          asc(schema.materials.code),
+          asc(schema.receipts.receivedAt),
+          asc(schema.receipts.receiptNumber),
+          asc(schema.materialLots.lineNo),
+        )
+    : [];
+
+  return {
+    dodaci,
+    polozky: items.map((i) => ({
+      orderNumber: i.orderNumber,
+      artikelCode: i.artikelCode,
+      artikelName: i.artikelName,
+      qtyPairs: i.qtyPairs,
+      vykony: vykony
+        .filter((v) => v.workOrderId === i.workOrderId)
+        .map((v) => ({
+          machineCode: v.machineCode,
+          machineName: v.machineName,
+          runDate: v.runDate,
+          shift: v.shift,
+          pairsProduced: v.pairsProduced,
+          batchNumber: v.batchNumber,
+        })),
+    })),
+    davky: davkyHlavicky.map((d) => {
+      const test = poslednyTest.get(d.batchId);
+      return {
+        batchNumber: d.batchNumber,
+        mixtureCode: d.mixtureCode,
+        mixtureName: d.mixtureName,
+        productionDate: d.productionDate,
+        verdikt:
+          test?.verdict && test.verdictAt
+            ? {
+                verdict: test.verdict,
+                verdictAt: test.verdictAt,
+                verdictByName: test.verdictByName,
+              }
+            : null,
+        merania: merania
+          .filter((m) => m.labTestId === test?.id)
+          .map((m) => ({
+            parameterCode: m.parameterCode,
+            parameterName: m.parameterName,
+            unit: m.unit,
+            value: m.value,
+            minLimit: m.minLimit,
+            maxLimit: m.maxLimit,
+            isWithinLimits: m.isWithinLimits,
+          })),
+        sarze: sarze
+          .filter((s) => s.batchId === d.batchId)
+          .map((s) => ({
+            materialCode: s.materialCode,
+            materialName: s.materialName,
+            supplierLotCode: s.supplierLotCode,
+            receiptNumber: s.receiptNumber,
+            receivedAt: s.receivedAt,
+            supplierName: s.supplierName,
+          })),
+      };
+    }),
+  };
+}

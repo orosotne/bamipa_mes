@@ -133,3 +133,17 @@
     @apply font-sans;
   }
 }
+
+/* Tlačové zostavy (traceability report) — A4 na výšku, čierna na bielej.
+   App shell (sidebar, tlačidlá) sa skrýva cez Tailwind print:hidden. */
+@page {
+  size: A4;
+  margin: 12mm;
+}
+
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+}

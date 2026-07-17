@@ -19,7 +19,7 @@ export default async function AppLayout({
 
   return (
     <div className="flex min-h-screen">
-      <aside className="flex w-56 shrink-0 flex-col border-r bg-sidebar px-3 py-5">
+      <aside className="flex w-56 shrink-0 flex-col border-r bg-sidebar px-3 py-5 print:hidden">
         <div className="mb-6 px-3">
           <div className="text-lg font-semibold tracking-tight">BAMIPA</div>
           <div className="text-xs text-muted-foreground">
@@ -35,7 +35,9 @@ export default async function AppLayout({
           <LogoutButton />
         </div>
       </aside>
-      <main className="flex-1 overflow-x-auto px-8 py-6">{children}</main>
+      <main className="flex-1 overflow-x-auto px-8 py-6 print:overflow-visible print:p-0">
+        {children}
+      </main>
     </div>
   );
 }

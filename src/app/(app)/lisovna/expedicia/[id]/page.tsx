@@ -50,6 +50,17 @@ export default async function DodaciDetailPage({
             {detail.dodaci.shipmentNumber}
           </h1>
         </div>
+        <Button
+          variant="outline"
+          nativeButton={false}
+          render={
+            <Link
+              href={`/lisovna/expedicia/${detail.dodaci.id}/traceabilita`}
+            />
+          }
+        >
+          Traceability report
+        </Button>
         <StornoShipmentButton
           id={detail.dodaci.id}
           cislo={detail.dodaci.shipmentNumber}
